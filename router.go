@@ -1,31 +1,35 @@
 package main
 
 import (
-	"encoding/json"
-	"net/http"
-	"strings"
-    "fmt"
+	"fedilist/packages/parser/action"
+	"fedilist/packages/parser/jsonld"
+	"fmt"
+	"bytes"
+    "net/http"
 )
 
-func ProcessMessages(q chan string) {
+func ProcessMessages(q chan []byte) {
 	for {
 		msg := <-q
-        decoder := json.NewDecoder(strings.NewReader(msg))
-        var activity Activity[List]
-        err := decoder.Decode(&activity)
+        fmt.Println("GOT MESSAGE")
+        data, err := jsonld.Expand([]byte(msg))
+        if err != nil {
+            panic(err)
+        }
+        act, err := action.Parse(data)
         if err != nil {
             panic(err)
         }
         var to string
-        if activity.Result.Type == "" {
-            to = activity.Target
+        if act.Result() == nil {
+            to = *act.TargetId()
         } else {
-            to = activity.Actor
+            to = act.Agent().Id
         }
         fmt.Println(">", to+"/inbox")
         resp, err := http.Post(
             to+"/inbox", "text/json",
-            strings.NewReader(msg),
+            bytes.NewReader(msg),
         )
         if err != nil {
             panic(err)
