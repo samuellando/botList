@@ -38,12 +38,12 @@ func (a Insert) AtIndex() int {
 	return a.atIndex
 }
 
-func (a Insert) Serialize() ([]byte, error) {
-    return []byte{}, nil
+func (a Insert) Serialize() []byte {
+	return []byte{}
 }
 
 func (a Insert) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
 

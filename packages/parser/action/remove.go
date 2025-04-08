@@ -38,11 +38,12 @@ func (a Remove) AtIndex() int {
 	return a.atIndex
 }
 
-func (a Remove) Serialize() ([]byte, error) {
-    return []byte{}, nil
+func (a Remove) Serialize() []byte {
+	return []byte{}
 }
+
 func (a Remove) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
 

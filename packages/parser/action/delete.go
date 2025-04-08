@@ -33,12 +33,12 @@ func (a Delete) Result() *result.Result{
 	return a.targetListAction.action.result
 }
 
-func (a Delete) Serialize() ([]byte, error) {
-    return []byte{}, nil
+func (a Delete) Serialize() []byte {
+	return []byte{}
 }
 
 func (a Delete) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
 func parseDelete(json map[string]any) (Delete, error) {

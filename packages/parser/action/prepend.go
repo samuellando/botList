@@ -33,12 +33,12 @@ func (a Prepend) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
-func (a Prepend) Serialize() ([]byte, error) {
-    return []byte{}, nil
+func (a Prepend) Serialize() []byte {
+	return []byte{}
 }
 
 func (a Prepend) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
 

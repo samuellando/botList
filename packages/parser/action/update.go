@@ -33,12 +33,12 @@ func (a Update) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
-func (a Update) Serialize() ([]byte, error) {
-    return []byte{}, nil
+func (a Update) Serialize() []byte {
+	return []byte{}
 }
 
 func (a Update) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
 

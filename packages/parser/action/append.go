@@ -40,10 +40,14 @@ func (a *Append) AddResult(r result.Result) {
 }
 
 func (a Append) TargetId() *string {
-	return a.targetListAction.targetCollection.Id
+	return a.targetListAction.targetCollection.Id()
 }
 
-func (a Append) Serialize() ([]byte, error) {
+func (a Append) TargetCollection() list.ItemList {
+	return a.targetListAction.targetCollection
+}
+
+func (a Append) Serialize() []byte {
     stla := a.targetListAction.marshal()
     stla.Type = "AppendAction"
 	return jsonld.Marshal(CONTEXT, stla)

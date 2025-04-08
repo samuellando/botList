@@ -2,13 +2,12 @@ package main
 
 import (
 	"fedilist/packages/parser/action"
-	"fedilist/packages/parser/jsonld"
 	"fedilist/packages/parser/list"
 	"fedilist/packages/parser/person"
-	"fedilist/packages/parser/result"
-    "strconv"
+	listService "fedilist/packages/service/list"
+	listStore "fedilist/packages/store/list"
+	"fedilist/packages/util"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,25 +32,23 @@ func getReqObjectReference(req *http.Request) (string, error) {
 	return objectId, nil
 }
 
-func getBodyJsonld(req *http.Request) (map[string]any, error) {
-	bodyBytes, err := io.ReadAll(req.Body)
-	defer req.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-	data, err := jsonld.Expand(bodyBytes)
-	return data, err
-}
-
 func main() {
 	args := os.Args[1:]
 
-	p := person.CreatePerson(serverUrl(), "sam", "")
-	l := list.CreateList(serverUrl(), "Sam's list", "")
-	p.AddList(l)
-
 	messages := make(chan []byte, 100)
 	go ProcessMessages(messages)
+
+    ls := listService.CreateService(listStore.CreateStore(serverUrl()+"/list/"), messages)
+
+	p := person.CreatePerson(serverUrl(), "sam", "")
+    l, _ := ls.Create(list.Create(func(ilv *list.ItemListValues) {
+        name := "Sam's list"
+        ilv.Name = &name
+    }))
+	p.AddList(l)
+
+
+    http.Handle("/list/{id}/{endpoint...}", ls)
 
 	http.HandleFunc("/user/{username}/outbox", func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "POST" {
@@ -62,7 +59,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		json, err := getBodyJsonld(req)
+		json, err := util.GetBodyJsonld(req)
 		if err != nil {
 			panic(err)
 		}
@@ -77,10 +74,7 @@ func main() {
 		switch act := anyAct.(type) {
 		case action.Create:
 		case action.Action:
-			jsonB, err := act.Serialize()
-			if err != nil {
-				panic(err)
-			}
+			jsonB := act.Serialize()
 			messages <- jsonB
 			w.WriteHeader(202)
 			return
@@ -90,61 +84,9 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/list/{id}/inbox", func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != "POST" {
-			http.Error(w, "Only POST is supported to outbox", 400)
-			return
-		}
-		listId, err := getReqObjectReference(req)
-		if err != nil {
-			panic(err)
-		}
-		json, err := getBodyJsonld(req)
-		if err != nil {
-			panic(err)
-		}
-		anyAct, err := action.Parse(json)
-		if err != nil {
-			panic(err)
-		}
-		if listId != *anyAct.TargetId() {
-			http.Error(w, "Can't post to lists user's inbox", 400)
-			return
-		}
-        switch act := anyAct.(type) {
-		case action.Append:
-            l := list.GetListById(listId)
-            if act.Object().Name == nil {
-                panic("NO NAME")
-            }
-            e := list.CreateList(serverUrl(), *act.Object().Name, "")
-            l.Append(e)
-            act.AddResult(result.Create("201", "Appended"))
-			jsonB, err := act.Serialize()
-			if err != nil {
-				panic(err)
-			}
-			messages <- jsonB
-            fmt.Println("OK")
-			w.WriteHeader(202)
-			return
-		default:
-			http.Error(w, "Unsupported action", 400)
-			return
-		}
-	})
-
-	http.HandleFunc("/list/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(r.PathValue("id"))
-		if err != nil {
-			panic(err)
-		}
-		PrintList(w, list.GetListById(fmt.Sprintf("%s/list/%d", serverUrl(), id)))
-	})
-
 	http.HandleFunc("/user/{username}/inbox", func(w http.ResponseWriter, req *http.Request) {
-        fmt.Println("Got response")
-        w.WriteHeader(202)
+		fmt.Println("Got response")
+		w.WriteHeader(202)
 	})
 
 	http.ListenAndServe(":"+args[0], nil)
@@ -175,13 +117,4 @@ func main() {
 	// })
 	//
 
-}
-
-func PrintList(w io.Writer, l list.ItemList) {
-	fmt.Fprintln(w, "----------------")
-	fmt.Fprintln(w, *l.Name)
-	fmt.Fprintln(w, "----------------")
-	for _, e := range l.ItemListElement {
-		fmt.Fprintln(w, "\t-", *e.Name)
-	}
 }

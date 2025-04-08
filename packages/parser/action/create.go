@@ -31,8 +31,8 @@ func (a Create) Result() *result.Result {
 	return a.action.result
 }
 
-func (a Create) Serialize() ([]byte, error) {
-	return []byte{}, nil
+func (a Create) Serialize() []byte {
+	return []byte{}
 }
 
 func (a Create) TargetId() *string {

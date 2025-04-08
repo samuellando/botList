@@ -2,8 +2,8 @@ package action
 
 import (
 	"fedilist/packages/parser/jsonld"
-	"time"
 	"testing"
+	"time"
 )
 
 func TestParseUpdate(t *testing.T) {
@@ -56,23 +56,23 @@ func TestParseUpdate(t *testing.T) {
 		if a.Agent().Id != "fedilist.com/people/sam" {
 			t.Fatal("Agent did not load")
 		}
-		if *a.Object().Name != "Bee Movie" {
+		if *a.Object().Name() != "Bee Movie" {
 			t.Fatal("Object did not load")
 		}
-        s := "2025-04-02T10:30:00Z"
-        ti, _ := time.Parse(time.RFC3339, s)
+		s := "2025-04-02T10:30:00Z"
+		ti, _ := time.Parse(time.RFC3339, s)
 		if !a.StartTime().Equal(ti) {
 			t.Fatalf("startTime did not load %s", a.StartTime().Sub(ti))
 		}
-        s = "2012-04-24T18:25:43Z"
-        ti, _ = time.Parse(time.RFC3339, s)
+		s = "2012-04-24T18:25:43Z"
+		ti, _ = time.Parse(time.RFC3339, s)
 		if !ti.Equal(*a.EndTime()) {
 			t.Fatalf("endTime did not load, %s", a.EndTime().Sub(ti))
 		}
 		if a.Result().Identifier != "200" {
 			t.Fatal("result did not load")
 		}
-    default:
-        t.Fatal("Wrong type")
+	default:
+		t.Fatal("Wrong type")
 	}
 }

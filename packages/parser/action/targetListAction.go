@@ -46,7 +46,7 @@ func parseTargetListAction(json map[string]any) (targetListAction, error) {
 
 	var targetCollection list.ItemList
 	if json, ok := objs["targetCollection"]; ok {
-		t, err := list.LoadItemList(json)
+		t, err := list.Parse(json)
 		if err != nil {
 			return targetListAction{}, err
 		}

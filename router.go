@@ -12,6 +12,7 @@ func ProcessMessages(q chan []byte) {
 	for {
 		msg := <-q
         fmt.Println("GOT MESSAGE")
+        fmt.Println(string(msg))
         data, err := jsonld.Expand([]byte(msg))
         if err != nil {
             panic(err)

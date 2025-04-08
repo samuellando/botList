@@ -38,7 +38,7 @@ func (a action) MarshalJSON() ([]byte, error) {
 type Action interface {
 	Agent() person.Person
     Result() *result.Result
-	Serialize() ([]byte, error)
+	Serialize() []byte
     TargetId() *string
 }
 
@@ -59,7 +59,7 @@ func parseAction(json map[string]any) (action, error) {
 
 	var object list.ItemList
 	if json, ok := objs["object"]; ok {
-		object, err = list.LoadItemList(json)
+		object, err = list.Parse(json)
 		if err != nil {
 			return action{}, err
 		}

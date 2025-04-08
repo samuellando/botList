@@ -8,26 +8,26 @@ import (
 	"github.com/piprate/json-gold/ld"
 )
 
-func Marshal(context, data any) ([]byte, error) {
+func Marshal(context, data any) []byte {
     s,  err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+        panic(err)
 	}
 	var raw map[string]any
 	err = json.Unmarshal(s, &raw)
 	if err != nil {
-		return nil, err
+        panic(err)
 	}
 	p := ld.NewJsonLdProcessor()
 	compact, err := p.Compact(raw, context, nil)
 	if err != nil {
-		return nil, err
+        panic(err)
 	}
 	s, err = json.Marshal(compact)
 	if err != nil {
-		return nil, err
+        panic(err)
 	}
-	return s, nil
+	return s
 }
 
 func Expand(data []byte) (map[string]any, error) {

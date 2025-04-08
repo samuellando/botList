@@ -57,7 +57,7 @@ func TestParseRemove(t *testing.T) {
 		if a.Agent().Id != "fedilist.com/people/sam" {
 			t.Fatal("Agent did not load")
 		}
-		if *a.Object().Name != "Bee Movie" {
+		if *a.Object().Name() != "Bee Movie" {
 			t.Fatal("Object did not load")
 		}
 		s := "2025-04-02T10:30:00Z"
