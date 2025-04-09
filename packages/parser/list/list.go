@@ -10,6 +10,7 @@ type ItemList struct {
 	description     *string
 	url             *string
 	tags            []Tag
+    hooks           []Hook
 	numberOfItems   *int
 	itemListElement []ItemList
 }
@@ -34,6 +35,10 @@ func (l ItemList) Tags() []Tag {
 	return l.tags
 }
 
+func (l ItemList) Hooks() []Hook {
+	return l.hooks
+}
+
 func (l ItemList) ItemListElement() []ItemList {
 	return l.itemListElement
 }
@@ -46,12 +51,14 @@ type ItemListValues struct {
 	Description     *string
 	Url             *string
 	Tags            []Tag
+    Hooks           []Hook
 	ItemListElement []ItemList
 }
 
 func Create(fs ...ItemListParam) ItemList {
 	p := ItemListValues{
 		Tags:            make([]Tag, 0),
+		Hooks:            make([]Hook, 0),
 		ItemListElement: make([]ItemList, 0),
 	}
 	for _, f := range fs {
@@ -65,6 +72,7 @@ func Create(fs ...ItemListParam) ItemList {
 		numberOfItems:   &n,
 		itemListElement: p.ItemListElement,
 		tags:            p.Tags,
+		hooks:            p.Hooks,
 	}
 }
 
