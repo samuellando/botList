@@ -14,6 +14,10 @@ type RunnerValues struct {
     Inbox string
 }
 
+func (r Runner) Id() *string {
+    return &r.id
+}
+
 func CreateRunner(fs ...func(*RunnerValues)) (Runner, error) {
 	v := RunnerValues{}
 	for _, f := range fs {

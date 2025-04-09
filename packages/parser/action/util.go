@@ -5,19 +5,6 @@ import (
 	"fmt"
 )
 
-var CONTEXT = map[string]any{
-	"@context": []any{
-		"http://schema.org",
-		map[string]any{
-			"owner":   "https://fedilist.org/owner",
-			"editor":  "https://fedilist.org/editor",
-			"viewer":  "https://fedilist.org/viewer",
-			"atIndex": "https://fedilist.org/toIndex",
-			"Result":  "https://fedilist.com/Result",
-		},
-	},
-}
-
 func Parse(json map[string]any) (Action, error) {
 	switch jsonld.GetType(json) {
 	case "http://schema.org/CreateAction":
@@ -34,6 +21,8 @@ func Parse(json map[string]any) (Action, error) {
 		return parseUpdate(json)
 	case "http://schema.org/DeleteAction":
 		return parseDelete(json)
+	case "http://fedilist.com/ExecuteAction":
+		return parseExecute(json)
 	default:
 		return nil, fmt.Errorf("Unrecognized action")
 	}

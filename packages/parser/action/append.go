@@ -1,16 +1,41 @@
 package action
 
 import (
-	"fedilist/packages/parser/jsonld"
 	"fedilist/packages/parser/list"
 	"fedilist/packages/parser/person"
 	"fedilist/packages/parser/result"
-	"fmt"
 	"time"
 )
 
 type Append struct {
 	targetListAction targetListAction
+}
+
+type AppendValues struct {
+	Agent            person.Person
+	Object           list.ItemList
+	StartTime        time.Time
+	EndTime          *time.Time
+	Result           *result.Result
+	TargetCollection list.ItemList
+}
+
+func CreateAppend(fs ...func(*AppendValues)) Append {
+	v := AppendValues{}
+	for _, f := range fs {
+		f(&v)
+	}
+    targetListAction := createTargetListAction(func(tlav *targetListActionValues) {
+		tlav.Agent = v.Agent
+		tlav.Object = v.Object
+		tlav.StartTime = v.StartTime
+		tlav.EndTime = v.EndTime
+		tlav.Result = v.Result
+        tlav.TargetCollection = v.TargetCollection
+    })
+	return Append{
+        targetListAction: targetListAction,
+	}
 }
 
 func (a Append) Agent() person.Person {
@@ -33,10 +58,11 @@ func (a Append) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
-func (a *Append) AddResult(r result.Result) {
-    t := time.Now()
+func (a Append) WithResult(r result.Result) Action {
+	t := time.Now()
 	a.targetListAction.action.result = &r
 	a.targetListAction.action.endTime = &t
+	return a
 }
 
 func (a Append) TargetId() *string {
@@ -45,21 +71,4 @@ func (a Append) TargetId() *string {
 
 func (a Append) TargetCollection() list.ItemList {
 	return a.targetListAction.targetCollection
-}
-
-func (a Append) Serialize() []byte {
-    stla := a.targetListAction.marshal()
-    stla.Type = "AppendAction"
-	return jsonld.Marshal(CONTEXT, stla)
-}
-
-func parseAppend(json map[string]any) (Append, error) {
-	if jsonld.GetType(json) != "http://schema.org/AppendAction" {
-		return Append{}, fmt.Errorf("Wrong @type")
-	}
-	tla, err := parseTargetListAction(json)
-	if err != nil {
-		return Append{}, err
-	}
-	return Append{targetListAction: tla}, nil
 }

@@ -9,7 +9,7 @@ type hook struct {
 }
 
 type hookValues struct {
-	Runner             Runner
+	Runner             *Runner
 	RunnerAction       string
 	RunnerActionConfig string
 }
@@ -19,7 +19,7 @@ func createHook(fs ...func(*hookValues)) (hook, error) {
 	for _, f := range fs {
 		f(&v)
 	}
-	if v.Runner == "" {
+	if v.Runner == nil  {
 		return hook{}, fmt.Errorf("Runner must be set on hook")
 	}
 	if v.RunnerAction == "" {
@@ -29,7 +29,7 @@ func createHook(fs ...func(*hookValues)) (hook, error) {
 		return hook{}, fmt.Errorf("Runner action config must be set on hook")
 	}
 	return hook{
-		runner:             v.Runner,
+		runner:             *v.Runner,
 		runnerAction:       v.RunnerAction,
 		runnerActionConfig: v.RunnerActionConfig,
 	}, nil
@@ -59,7 +59,7 @@ func CreateActionHook(fs ...func(*ActionHookValues)) (ActionHook, error) {
 		f(&v)
 	}
 	h, err := createHook(func(hv *hookValues) {
-		hv.Runner = v.Runner
+		hv.Runner = &v.Runner
 		hv.RunnerAction = v.RunnerAction
 		hv.RunnerActionConfig = v.RunnerActionConfig
 	})
@@ -106,7 +106,7 @@ func CreateCronHook(fs ...func(*CronHookValues)) (CronHook, error) {
 		f(&v)
 	}
 	h, err := createHook(func(hv *hookValues) {
-		hv.Runner = v.Runner
+		hv.Runner = &v.Runner
 		hv.RunnerAction = v.RunnerAction
 		hv.RunnerActionConfig = v.RunnerActionConfig
 	})

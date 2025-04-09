@@ -14,6 +14,33 @@ type targetListAction struct {
 	targetCollection list.ItemList
 }
 
+type targetListActionValues struct {
+	Agent            person.Person
+	Object           list.ItemList
+	StartTime        time.Time
+	EndTime          *time.Time
+	Result           *result.Result
+	TargetCollection list.ItemList
+}
+
+func createTargetListAction(fs ...func(*targetListActionValues)) targetListAction {
+	v := targetListActionValues{}
+	for _, f := range fs {
+		f(&v)
+	}
+	action := createAction(func(av *actionValues) {
+		av.Agent = v.Agent
+		av.Object = v.Object
+		av.StartTime = v.StartTime
+		av.EndTime = v.EndTime
+		av.Result = v.Result
+	})
+	return targetListAction{
+		action:           action,
+		targetCollection: v.TargetCollection,
+	}
+}
+
 type marshaledTargetListAction struct {
 	Type             string         `json:"@type"`
 	Agent            person.Person  `json:"http://schema.org/agent"`
@@ -25,7 +52,7 @@ type marshaledTargetListAction struct {
 }
 
 func (a targetListAction) marshal() marshaledTargetListAction {
-	return marshaledTargetListAction {
+	return marshaledTargetListAction{
 		Agent:            a.action.agent,
 		Object:           a.action.object,
 		StartTime:        a.action.startTime,

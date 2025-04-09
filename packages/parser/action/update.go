@@ -33,12 +33,15 @@ func (a Update) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
-func (a Update) Serialize() []byte {
-	return []byte{}
-}
-
 func (a Update) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
+}
+
+func (a Update) WithResult(r result.Result) Action {
+	t := time.Now()
+	a.targetListAction.action.result = &r
+	a.targetListAction.action.endTime = &t
+	return a
 }
 
 

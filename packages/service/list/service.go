@@ -2,11 +2,13 @@ package list
 
 import (
 	"fedilist/packages/parser/action"
+	"fedilist/packages/parser/jsonld"
 	"fedilist/packages/parser/list"
 	"fedilist/packages/parser/result"
+	"fedilist/packages/service/cron"
 	"fedilist/packages/util"
-	"fmt"
 	"net/http"
+	"time"
 )
 
 type ListStore interface {
@@ -17,14 +19,16 @@ type ListStore interface {
 }
 
 type ListService struct {
-	store ListStore
-    messageQueue chan []byte
+	store        ListStore
+	messageQueue chan []byte
+    cronService  cron.CronService
 }
 
 func CreateService(store ListStore, q chan []byte) ListService {
 	return ListService{
-		store: store,
-        messageQueue: q,
+		store:        store,
+		messageQueue: q,
+        cronService: cron.Create(q),
 	}
 }
 
@@ -37,8 +41,8 @@ func (ls ListService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	switch endpoint {
 	case "":
-        fmt.Println(list)
-		w.Write(list.Serialize())
+		s := jsonld.MarshalIndent(list)
+		w.Write(s)
 	case "inbox":
 		if req.Method != "POST" {
 			http.Error(w, "Only POST is supported to inboxes", 400)
@@ -55,10 +59,10 @@ func (ls ListService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		switch act := anyAct.(type) {
 		case action.Append:
-            ls.Append(w, act)
-            if err != nil {
-                panic(err)
-            }
+			ls.Append(w, act)
+			if err != nil {
+				panic(err)
+			}
 
 		default:
 			http.Error(w, "Unsupported action", 400)
@@ -71,34 +75,71 @@ func (s ListService) GetById(id string) (list.ItemList, error) {
 	return s.store.GetById(id)
 }
 
-func (s ListService) Create(l list.ItemList) (list.ItemList, error) {
-	return s.store.Insert(list.Create(func(ilv *list.ItemListValues) {
-		ilv.Name = l.Name()
-		ilv.Description = l.Description()
-	}))
+func (s ListService) Create(fs ...func(*list.ItemListValues)) (list.ItemList, error) {
+    l, err := s.store.Insert(list.Create(fs...))
+    if err != nil {
+        return l, err
+    }
+    for _, h := range l.Hooks() {
+        switch ch := h.(type) {
+        case list.CronHook:
+            ea := action.CreateExecute(func(ev *action.ExecuteValues) {
+                ev.StartTime = time.Now()
+                ev.TargetRunner = ch.Runner()
+                ev.RunnerAction = ch.RunnerAction()
+                ev.RunnerActionConfig = ch.RunnerActionConfig()
+            })
+            b := jsonld.MarshalIndent(ea)
+            s.cronService.AddJob(cron.CronJob{
+                Crontab: ch.CronTab(),
+                Message: b,
+            })
+        }
+    }
+    return l, nil
 }
 
-
-func (ls ListService) Append(w http.ResponseWriter, act action.Append){
+func (ls ListService) Append(w http.ResponseWriter, act action.Append) {
 	if act.Object().Name() == nil {
 		http.Error(w, "Action Object requires a name", 400)
-        return
+		return
 	}
-    obj := act.Object()
-	e, err  := ls.Create(obj)
-    if err != nil {
-        panic(err)
-    }
-    target := act.TargetCollection()
+	obj := act.Object()
+	e, err := ls.Create(func(ilv *list.ItemListValues) {
+		ilv.Name = obj.Name()
+		ilv.Description = obj.Description()
+	})
+	if err != nil {
+		panic(err)
+	}
+	target := act.TargetCollection()
 	target.Append(e)
 
-    _, err = ls.store.Append(target, e)
+	_, err = ls.store.Append(target, e)
+	if err != nil {
+		panic(err)
+	}
+	jsonB := jsonld.Marshal(act.WithResult(result.Create("201", "Appended")))
+
+	ls.messageQueue <- jsonB
+	w.WriteHeader(202)
+    l, err := ls.GetById(*target.Id())
     if err != nil {
         panic(err)
     }
-
-	act.AddResult(result.Create("201", "Appended"))
-	jsonB := act.Serialize()
-	ls.messageQueue <- jsonB
-	w.WriteHeader(202)
+    for _, hook := range l.Hooks() {
+        switch hook.(type) {
+        case list.ActionHook:
+            ea := action.CreateExecute(func(ev *action.ExecuteValues) {
+                ev.Agent= act.Agent()
+                ev.Object = act
+                ev.StartTime = time.Now()
+                ev.TargetRunner = hook.Runner()
+                ev.RunnerAction = hook.RunnerAction()
+                ev.RunnerActionConfig = hook.RunnerActionConfig()
+            })
+            b := jsonld.MarshalIndent(ea)
+            ls.messageQueue <- b
+        }
+    }
 }

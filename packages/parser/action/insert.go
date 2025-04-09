@@ -38,12 +38,15 @@ func (a Insert) AtIndex() int {
 	return a.atIndex
 }
 
-func (a Insert) Serialize() []byte {
-	return []byte{}
-}
-
 func (a Insert) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
+}
+
+func (a Insert) WithResult(r result.Result) Action {
+	t := time.Now()
+	a.targetListAction.action.result = &r
+	a.targetListAction.action.endTime = &t
+	return a
 }
 
 
@@ -55,7 +58,7 @@ func parseInsert(json map[string]any) (Insert, error) {
 	if err != nil {
 		return Insert{}, err
 	}
-	schemaOrgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
+	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	ints := jsonld.GetBaseTypeValues[float64](schemaOrgValues)
 	var atIndex int
 	if i, ok := ints["atIndex"]; ok {

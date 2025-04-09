@@ -20,7 +20,7 @@ func (t Tag) MarshalJSON() ([]byte, error) {
 }
 
 func ParseTag(json map[string]any) (Tag, error) {
-	if jsonld.GetType(json) != "https://fedilist.com/Tag" {
+	if jsonld.GetType(json) != "http://fedilist.com/Tag" {
 		return Tag{}, fmt.Errorf("Type must be Tag")
 	}
 	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")

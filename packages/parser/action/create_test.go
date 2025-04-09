@@ -12,11 +12,11 @@ func TestParseCreate(t *testing.T) {
         "@context": [
             "https://schema.org",
             {
-                "owner": "https://fedilist.org/owner",
-                "editor": "https://fedilist.org/editor",
-                "viewer": "https://fedilist.org/viewer",
-                "atIndex": "https://fedilist.org/toIndex",
-                "Result": "https://fedilist.com/Result"
+                "owner": "http://fedilist.com/owner",
+                "editor": "http://fedilist.com/editor",
+                "viewer": "http://fedilist.com/viewer",
+                "atIndex": "http://fedilist.com/toIndex",
+                "Result": "http://fedilist.com/Result"
             }
         ],
         "@type": "CreateAction",

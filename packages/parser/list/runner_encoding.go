@@ -11,10 +11,10 @@ func (t Runner) MarshalJSON() ([]byte, error) {
 		Type  string `json:"@type"`
 		Id    string `json:"@id"`
 		Name  string `json:"http://schema.org/name"`
-		Inbox string `json:"https://fedilist.com/inbox"`
+		Inbox string `json:"http://fedilist.com/inbox"`
 	}
 	return json.Marshal(External{
-		Type:               "http://fedilist.com/ActionHook",
+		Type:               "http://fedilist.com/Runner",
         Id: t.id,
         Name: t.name,
         Inbox: t.inbox,
@@ -22,22 +22,28 @@ func (t Runner) MarshalJSON() ([]byte, error) {
 }
 
 func ParseRunner(json map[string]any) (Runner, error) {
-	hook, err := parseHook(json)
-
-	orgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
-	if err != nil {
-		return Runner{}, err
+	if jsonld.GetType(json) != "http://fedilist.com/Runner" {
+		return Runner{}, fmt.Errorf("Type must be Runner")
 	}
-	strs := jsonld.GetBaseTypeValues[string](orgValues)
-	var onActionType []string
-	if arr, ok := strs["onActionType"]; ok {
-		onActionType = arr
-	} else {
-		return ActionHook{}, fmt.Errorf("Action hooks must have a onActionType")
+    id := jsonld.GetId(json)
+	fediOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
+	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")
+	strs := jsonld.GetBaseTypeValues[string](schemaOrgValues)
+
+	var name string
+	if v, ok := strs["name"]; ok {
+		name = v
 	}
 
-	return ActionHook{
-		hook:         hook,
-		onActionType: onActionType,
+	strs = jsonld.GetBaseTypeValues[string](fediOrgValues)
+	var inbox string
+	if v, ok := strs["inbox"]; ok {
+		inbox = v
+	}
+
+	return Runner{
+        id: *id,
+        name: name,
+        inbox: inbox,
 	}, nil
 }

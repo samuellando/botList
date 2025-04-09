@@ -33,12 +33,15 @@ func (a Prepend) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
-func (a Prepend) Serialize() []byte {
-	return []byte{}
-}
-
 func (a Prepend) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
+}
+
+func (a Prepend) WithResult(r result.Result) Action {
+	t := time.Now()
+	a.targetListAction.action.result = &r
+	a.targetListAction.action.endTime = &t
+	return a
 }
 
 

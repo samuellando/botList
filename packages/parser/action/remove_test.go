@@ -12,11 +12,11 @@ func TestParseRemove(t *testing.T) {
         "@context": [
             "https://schema.org",
             {
-                "owner": "https://fedilist.com/owner",
-                "editor": "https://fedilist.com/editor",
-                "viewer": "https://fedilist.com/viewer",
-                "atIndex": "https://fedilist.com/atIndex",
-                "Result": "https://fedilist.com/Result"
+                "owner": "http://fedilist.com/owner",
+                "editor": "http://fedilist.com/editor",
+                "viewer": "http://fedilist.com/viewer",
+                "atIndex": "http://fedilist.com/atIndex",
+                "Result": "http://fedilist.com/Result"
             }
         ],
         "@type": "RemoveAction",

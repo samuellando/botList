@@ -18,7 +18,7 @@ func (a Result) MarshalJSON() ([]byte, error) {
         Description string `json:"http://schema.org/description"`
 	}
 	return json.Marshal(External{
-        Type: "https://fedilist.com/Result",
+        Type: "http://fedilist.com/Result",
         Identifier: a.Identifier,
         Description: a.Description,
 	})
@@ -33,7 +33,7 @@ func Create(identifier, description string) Result {
 
 
 func LoadResult(json map[string]any) (Result, error) {
-    if jsonld.GetType(json) != "https://fedilist.com/Result" {
+    if jsonld.GetType(json) != "http://fedilist.com/Result" {
         return Result{}, fmt.Errorf("Cannot load non result")
     }
     schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")

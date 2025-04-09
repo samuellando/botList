@@ -31,12 +31,15 @@ func (a Create) Result() *result.Result {
 	return a.action.result
 }
 
-func (a Create) Serialize() []byte {
-	return []byte{}
-}
-
 func (a Create) TargetId() *string {
 	return nil
+}
+
+func (a Create) WithResult(r result.Result) Action {
+	t := time.Now()
+	a.action.result = &r
+	a.action.endTime = &t
+	return a
 }
 
 func parseCreate(json map[string]any) (Create, error) {

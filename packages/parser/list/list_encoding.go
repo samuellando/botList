@@ -6,21 +6,6 @@ import (
 	"fmt"
 )
 
-var CONTEXT = map[string]any{
-	"@context": []any{
-		"http://schema.org",
-		map[string]any{
-			"owner":   "https://fedilist.org/owner",
-			"editor":  "https://fedilist.org/editor",
-			"viewer":  "https://fedilist.org/viewer",
-			"hooks":   "https://fedilist.org/hooks",
-			"inbox":   "https://fedilist.org/inbox",
-			"atIndex": "https://fedilist.org/toIndex",
-			"Result":  "https://fedilist.com/Result",
-		},
-	},
-}
-
 func (l ItemList) MarshalJSON() ([]byte, error) {
 	type External struct {
 		Type            string     `json:"@type"`

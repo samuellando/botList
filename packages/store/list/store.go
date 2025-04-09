@@ -34,6 +34,7 @@ func (s ListStore) Insert(l list.ItemList) (list.ItemList, error) {
 		ilv.Url = l.Url()
 		ilv.Tags = l.Tags()
 		ilv.ItemListElement = l.ItemListElement()
+        ilv.Hooks = l.Hooks()
 	})
 	DB[id] = withId
 	return withId, nil

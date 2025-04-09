@@ -9,9 +9,9 @@ import (
 func (t ActionHook) MarshalJSON() ([]byte, error) {
 	type External struct {
 		Type               string   `json:"@type"`
-		OnActionType       []string `json:"https://fedilist.com/onActionType"`
-		RunnerAction       string   `json:"https://fedilist.com/runnerAction"`
-		RunnerActionConfig string   `json:"https://fedilist.com/runnerActionConfig"`
+		OnActionType       []string `json:"http://fedilist.com/onActionType"`
+		RunnerAction       string   `json:"http://fedilist.com/runnerAction"`
+		RunnerActionConfig string   `json:"http://fedilist.com/runnerActionConfig"`
 	}
 	return json.Marshal(External{
 		Type:               "http://fedilist.com/ActionHook",
@@ -24,9 +24,9 @@ func (t ActionHook) MarshalJSON() ([]byte, error) {
 func (t CronHook) MarshalJSON() ([]byte, error) {
 	type External struct {
 		Type               string `json:"@type"`
-		CronTab            string `json:"https://fedilist.com/cronTab"`
-		RunnerAction       string `json:"https://fedilist.com/runnerAction"`
-		RunnerActionConfig string `json:"https://fedilist.com/runnerActionConfig"`
+		CronTab            string `json:"http://fedilist.com/cronTab"`
+		RunnerAction       string `json:"http://fedilist.com/runnerAction"`
+		RunnerActionConfig string `json:"http://fedilist.com/runnerActionConfig"`
 	}
 	return json.Marshal(External{
 		Type:               "http://fedilist.com/CronHook",
@@ -38,9 +38,9 @@ func (t CronHook) MarshalJSON() ([]byte, error) {
 
 func ParseHook(json map[string]any) (Hook, error) {
     switch jsonld.GetType(json) {
-    case "https://fedilist.com/ActionHook":
+    case "http://fedilist.com/ActionHook":
         return parseActionHook(json)
-    case "https://fedilist.com/CronHook":
+    case "http://fedilist.com/CronHook":
         return parseCronHook(json)
     default:
 		return CronHook{}, fmt.Errorf("Type must be known hook type")
@@ -48,7 +48,7 @@ func ParseHook(json map[string]any) (Hook, error) {
 }
 
 func parseHook(json map[string]any) (hook, error) {
-	orgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
+	orgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	strs := jsonld.GetBaseTypeValues[string](orgValues)
 	var runnerAction string
 	if v, ok := strs["runnerAction"]; ok {
@@ -71,7 +71,7 @@ func parseHook(json map[string]any) (hook, error) {
 func parseCronHook(json map[string]any) (CronHook, error) {
     hook, err := parseHook(json)
 
-	orgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
+	orgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
     if err != nil {
         return CronHook{}, err
     }
@@ -92,7 +92,7 @@ func parseCronHook(json map[string]any) (CronHook, error) {
 func parseActionHook(json map[string]any) (ActionHook, error) {
     hook, err := parseHook(json)
 
-	orgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
+	orgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
     if err != nil {
         return ActionHook{}, err
     }

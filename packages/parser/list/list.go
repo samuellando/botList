@@ -1,7 +1,7 @@
 package list
 
 import (
-	"fedilist/packages/parser/jsonld"
+    "fmt"
 )
 
 type ItemList struct {
@@ -10,7 +10,7 @@ type ItemList struct {
 	description     *string
 	url             *string
 	tags            []Tag
-    hooks           []Hook
+	hooks           []Hook
 	numberOfItems   *int
 	itemListElement []ItemList
 }
@@ -43,28 +43,27 @@ func (l ItemList) ItemListElement() []ItemList {
 	return l.itemListElement
 }
 
-type ItemListParam func(*ItemListValues)
-
 type ItemListValues struct {
 	Id              *string
 	Name            *string
 	Description     *string
 	Url             *string
 	Tags            []Tag
-    Hooks           []Hook
+	Hooks           []Hook
 	ItemListElement []ItemList
 }
 
-func Create(fs ...ItemListParam) ItemList {
+func Create(fs ...func(*ItemListValues)) ItemList {
 	p := ItemListValues{
 		Tags:            make([]Tag, 0),
-		Hooks:            make([]Hook, 0),
+		Hooks:           make([]Hook, 0),
 		ItemListElement: make([]ItemList, 0),
 	}
 	for _, f := range fs {
 		f(&p)
 	}
 	n := len(p.ItemListElement)
+    fmt.Println(p.Hooks)
 	return ItemList{
 		id:              p.Id,
 		name:            p.Name,
@@ -72,7 +71,7 @@ func Create(fs ...ItemListParam) ItemList {
 		numberOfItems:   &n,
 		itemListElement: p.ItemListElement,
 		tags:            p.Tags,
-		hooks:            p.Hooks,
+		hooks:           p.Hooks,
 	}
 }
 
@@ -80,8 +79,4 @@ func (l *ItemList) Append(e ItemList) {
 	l.itemListElement = append(l.itemListElement, e)
 	n := len(l.itemListElement)
 	l.numberOfItems = &n
-}
-
-func (l ItemList) Serialize() []byte {
-	return jsonld.Marshal(CONTEXT, l)
 }

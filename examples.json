@@ -36,7 +36,7 @@
         "lists": "fedilist.com//users/sam/lists"
     },
     {
-        "@context": "https://fedilist.com/ns/hooks",
+        "@context": "http://fedilist.com/ns/hooks",
         "type": "Runner",
         "id": "fedilist.com/runners/fedilistRunner",
         "name": "fedilistRunner",
@@ -46,7 +46,7 @@
     {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
-            "https://fedilist.com/ns/hooks"
+            "http://fedilist.com/ns/hooks"
         ],
         "type": "OrderedCollection",
         "id": "fedilist.com/lists/1/hooks",

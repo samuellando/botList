@@ -8,7 +8,22 @@ import (
 	"github.com/piprate/json-gold/ld"
 )
 
-func Marshal(context, data any) []byte {
+var CONTEXT = map[string]any{
+	"@context": []any{
+		"http://schema.org",
+		map[string]any{
+			"owner":   "http://fedilist.com/owner",
+			"editor":  "http://fedilist.com/editor",
+			"viewer":  "http://fedilist.com/viewer",
+			"atIndex": "http://fedilist.com/toIndex",
+			"Result":  "http://fedilist.com/Result",
+			"hooks":   "http://fedilist.com/hooks",
+			"inbox":   "http://fedilist.com/inbox",
+		},
+	},
+}
+
+func Marshal(data any) []byte {
 	s, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
@@ -19,11 +34,33 @@ func Marshal(context, data any) []byte {
 		panic(err)
 	}
 	p := ld.NewJsonLdProcessor()
-	compact, err := p.Compact(raw, context, nil)
+	compact, err := p.Compact(raw, CONTEXT, nil)
 	if err != nil {
 		panic(err)
 	}
 	s, err = json.Marshal(compact)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func MarshalIndent(data any) []byte {
+	s, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	var raw map[string]any
+	err = json.Unmarshal(s, &raw)
+	if err != nil {
+		panic(err)
+	}
+	p := ld.NewJsonLdProcessor()
+	compact, err := p.Compact(raw, CONTEXT, nil)
+	if err != nil {
+		panic(err)
+	}
+	s, err = json.MarshalIndent(compact, "", "    ")
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +148,7 @@ func GetCompositeTypeArrayValues(json map[string]any) map[string][]map[string]an
                     if _, ok := values[k]; ok {
                         values[k] = append(values[k], o)
                     } else {
-                        values[k] = make([]map[string]any, 0)
+                        values[k] = make([]map[string]any, 1)
                         values[k][0] = o 
                     }
 				}

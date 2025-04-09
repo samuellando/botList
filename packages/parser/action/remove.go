@@ -38,12 +38,15 @@ func (a Remove) AtIndex() int {
 	return a.atIndex
 }
 
-func (a Remove) Serialize() []byte {
-	return []byte{}
-}
-
 func (a Remove) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
+}
+
+func (a Remove) WithResult(r result.Result) Action {
+	t := time.Now()
+	a.targetListAction.action.result = &r
+	a.targetListAction.action.endTime = &t
+	return a
 }
 
 
@@ -55,7 +58,7 @@ func parseRemove(json map[string]any) (Remove, error) {
 	if err != nil {
 		return Remove{}, err
 	}
-	schemaOrgValues := jsonld.GetNamespaceValues(json, "https://fedilist.com")
+	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	ints := jsonld.GetBaseTypeValues[float64](schemaOrgValues)
 	var atIndex int
 	if i, ok := ints["atIndex"]; ok {
