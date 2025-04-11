@@ -8,6 +8,7 @@ import (
 	"fedilist/packages/model/person"
 	listService "fedilist/packages/service/list"
 	runnerService "fedilist/packages/service/runner"
+	"fedilist/packages/service/router"
 	listStore "fedilist/packages/store/list"
 	"fedilist/packages/util"
 	"fmt"
@@ -39,7 +40,7 @@ func main() {
 	args := os.Args[1:]
 
 	messages := make(chan []byte, 100)
-	go ProcessMessages(messages)
+	go router.ProcessMessages(messages)
 
 
 	ls := listService.CreateService(listStore.CreateStore(serverUrl()+"/list/"), messages)
