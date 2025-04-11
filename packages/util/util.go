@@ -1,7 +1,7 @@
 package util
 
 import (
-	"fedilist/packages/parser/jsonld"
+	"fedilist/packages/jsonld"
 	"io"
 	"net/http"
 )

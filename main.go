@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fedilist/packages/parser/action"
-	"fedilist/packages/parser/jsonld"
-	"fedilist/packages/parser/list"
-	"fedilist/packages/parser/person"
+	"fedilist/packages/model/action"
+	"fedilist/packages/jsonld"
+	"fedilist/packages/model/list"
+	"fedilist/packages/model/hook"
+	"fedilist/packages/model/person"
 	listService "fedilist/packages/service/list"
 	runnerService "fedilist/packages/service/runner"
 	listStore "fedilist/packages/store/list"
@@ -48,7 +49,7 @@ func main() {
 	l, _ := ls.Create(func(ilv *list.ItemListValues) {
 		name := "Sam's list"
 		ilv.Name = &name
-		h, err := list.CreateActionHook(func(ahv *list.ActionHookValues) {
+		h, err := hook.CreateActionHook(func(ahv *hook.ActionHookValues) {
 			ahv.Runner = rs.Runner()
 			ahv.RunnerAction = "CopyTo"
 			ahv.RunnerActionConfig = serverUrl() + "/list/1"
@@ -57,7 +58,7 @@ func main() {
         if err != nil {
             panic(err)
         }
-		ch, err := list.CreateCronHook(func(ahv *list.CronHookValues) {
+		ch, err := hook.CreateCronHook(func(ahv *hook.CronHookValues) {
 			ahv.Runner = rs.Runner()
 			ahv.RunnerAction = "Print"
 			ahv.RunnerActionConfig = "Hello World"
@@ -66,7 +67,7 @@ func main() {
         if err != nil {
             panic(err)
         }
-		ilv.Hooks = []list.Hook{h, ch}
+		ilv.Hooks = []hook.Hook{h, ch}
 	})
 	ls.Create(func(ilv *list.ItemListValues) {
 		name := "Target list"

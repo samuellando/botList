@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fedilist/packages/parser/action"
-	"fedilist/packages/parser/jsonld"
+	"fedilist/packages/model/action"
+	"fedilist/packages/jsonld"
 	"fmt"
 	"bytes"
     "net/http"

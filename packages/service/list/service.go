@@ -1,10 +1,11 @@
 package list
 
 import (
-	"fedilist/packages/parser/action"
-	"fedilist/packages/parser/jsonld"
-	"fedilist/packages/parser/list"
-	"fedilist/packages/parser/result"
+	"fedilist/packages/model/action"
+	"fedilist/packages/jsonld"
+	"fedilist/packages/model/list"
+	"fedilist/packages/model/hook"
+	"fedilist/packages/model/result"
 	"fedilist/packages/service/cron"
 	"fedilist/packages/util"
 	"net/http"
@@ -82,7 +83,7 @@ func (s ListService) Create(fs ...func(*list.ItemListValues)) (list.ItemList, er
     }
     for _, h := range l.Hooks() {
         switch ch := h.(type) {
-        case list.CronHook:
+        case hook.CronHook:
             ea := action.CreateExecute(func(ev *action.ExecuteValues) {
                 ev.StartTime = time.Now()
                 ev.TargetRunner = ch.Runner()
@@ -127,16 +128,16 @@ func (ls ListService) Append(w http.ResponseWriter, act action.Append) {
     if err != nil {
         panic(err)
     }
-    for _, hook := range l.Hooks() {
-        switch hook.(type) {
-        case list.ActionHook:
+    for _, h := range l.Hooks() {
+        switch h.(type) {
+        case hook.ActionHook:
             ea := action.CreateExecute(func(ev *action.ExecuteValues) {
                 ev.Agent= act.Agent()
                 ev.Object = act
                 ev.StartTime = time.Now()
-                ev.TargetRunner = hook.Runner()
-                ev.RunnerAction = hook.RunnerAction()
-                ev.RunnerActionConfig = hook.RunnerActionConfig()
+                ev.TargetRunner = h.Runner()
+                ev.RunnerAction = h.RunnerAction()
+                ev.RunnerActionConfig = h.RunnerActionConfig()
             })
             b := jsonld.MarshalIndent(ea)
             ls.messageQueue <- b

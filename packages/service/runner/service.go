@@ -1,10 +1,11 @@
 package runner
 
 import (
-	"fedilist/packages/parser/action"
-	"fedilist/packages/parser/jsonld"
-	"fedilist/packages/parser/list"
-	"fedilist/packages/parser/result"
+	"fedilist/packages/model/action"
+	"fedilist/packages/jsonld"
+	"fedilist/packages/model/list"
+	"fedilist/packages/model/runner"
+	"fedilist/packages/model/result"
 	"fedilist/packages/util"
 	"fmt"
 	"net/http"
@@ -13,15 +14,15 @@ import (
 
 type Service struct {
 	messageQueue chan []byte
-	runner       list.Runner
+	runner       runner.Runner
 }
 
 func Create(id string, q chan []byte) Service {
-	r, err := list.CreateRunner(func(rv *list.RunnerValues) {
+	r, err := runner.Create(func(rv *runner.RunnerValues) {
 		rv.Id = id
 		rv.Name = "Default Runner"
 		rv.Inbox = id + "/inbox"
-		rv.Service = []list.Service{
+		rv.Service = []runner.Service{
 			{
 				Name:   "CopyTo",
 				Schema: `{"example": "ok"}`,
@@ -41,7 +42,7 @@ func Create(id string, q chan []byte) Service {
 	}
 }
 
-func (s Service) Runner() list.Runner {
+func (s Service) Runner() runner.Runner {
 	return s.runner
 }
 

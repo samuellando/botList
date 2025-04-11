@@ -1,7 +1,7 @@
 package list
 
 import (
-	"fedilist/packages/parser/list"
+	"fedilist/packages/model/list"
 	"strconv"
 )
 
