@@ -25,7 +25,7 @@ func ProcessMessages(q chan []byte) {
         if act.Result() == nil {
             to = *act.TargetId()
         } else {
-            to = act.Agent().Id
+            to = act.Agent().Id()
         }
         fmt.Println(">", to+"/inbox")
         resp, err := http.Post(
