@@ -11,6 +11,10 @@ type Create struct {
 	action action
 }
 
+func (a Create) Signature() string {
+	return a.action.signature
+}
+
 func (a Create) Agent() person.Person {
 	return a.action.agent
 }

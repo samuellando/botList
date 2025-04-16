@@ -11,6 +11,10 @@ type Append struct {
 	targetListAction targetListAction
 }
 
+func (a Append) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 type AppendValues struct {
 	Agent            person.Person
 	Object           list.ItemList

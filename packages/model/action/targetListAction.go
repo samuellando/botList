@@ -49,6 +49,7 @@ type marshaledTargetListAction struct {
 	EndTime          *time.Time     `json:"http://schema.org/endTime,omitempty"`
 	Result           *result.Result `json:"http://schema.org/result,omitempty"`
 	TargetCollection list.ItemList  `json:"http://schema.org/targetCollection"`
+	Signature        string         `json:"http://fedilist.com/signature,omitempty"`
 }
 
 func (a targetListAction) marshal() marshaledTargetListAction {
@@ -59,6 +60,7 @@ func (a targetListAction) marshal() marshaledTargetListAction {
 		EndTime:          a.action.endTime,
 		Result:           a.action.result,
 		TargetCollection: a.targetCollection,
+		Signature:        a.action.signature,
 	}
 }
 

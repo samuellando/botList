@@ -26,11 +26,11 @@ func main() {
 	messages := make(chan []byte, 100)
 	go router.ProcessMessages(messages)
 
-	ls := listService.CreateService(listStore.CreateStore(serverUrl()+"/list/"), messages)
-	ps := personService.CreateService(personStore.CreateStore(serverUrl()+"/user/"), messages)
+	ls := listService.Create(listStore.CreateStore(serverUrl()+"/list/"), messages)
+	ps := personService.Create(personStore.CreateStore(serverUrl()+"/user/"), messages)
 	rs := runnerService.Create(serverUrl()+"/runner", messages)
 
-	p, _ := ps.Create(func(pv *person.PersonValues) {
+	p, _, _ := ps.Create(func(pv *person.PersonValues) {
 		pv.Name = "Sam"
 	})
 
@@ -57,6 +57,7 @@ func main() {
 		}
 		ilv.Hooks = []hook.Hook{h, ch}
 	})
+
 	ls.Create(func(ilv *list.ItemListValues) {
 		name := "Target list"
 		ilv.Name = &name
@@ -65,6 +66,8 @@ func main() {
 	ps.AddList(p, l)
 
 	http.Handle("/list/{id}/{endpoint...}", ls)
+
+	http.Handle("/user", ps)
 
 	http.Handle("/user/{id}/{endpoint...}", ps)
 

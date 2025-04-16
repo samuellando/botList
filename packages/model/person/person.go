@@ -9,43 +9,50 @@ type Person struct {
 	name        string
 	description string
 	list        []list.ItemList
+	key         string
 }
 
 func (p Person) Id() string {
-    return p.id
+	return p.id
 }
 
 func (p Person) Name() string {
-    return p.name
+	return p.name
 }
 
 func (p Person) Description() string {
-    return p.description
+	return p.description
 }
 
 func (p Person) List() []list.ItemList {
-    return p.list
+	return p.list
+}
+
+func (p Person) Key() string {
+	return p.key
 }
 
 type PersonValues struct {
-    Id          string
+	Id          string
 	Name        string
 	Description string
+	Key         string
 	List        []list.ItemList
 }
 
 func CreatePerson(fs ...func(*PersonValues)) Person {
-    pv := PersonValues{
-        List: make([]list.ItemList, 0),
-    }
-    for _, f := range fs {
-        f(&pv)
-    }
+	pv := PersonValues{
+		List: make([]list.ItemList, 0),
+	}
+	for _, f := range fs {
+		f(&pv)
+	}
 	p := Person{
-        id: pv.Id,
+		id:          pv.Id,
 		name:        pv.Name,
 		description: pv.Description,
 		list:        pv.List,
+		key:         pv.Key,
 	}
 	return p
 }

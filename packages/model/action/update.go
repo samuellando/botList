@@ -13,6 +13,10 @@ type Update struct {
 	targetListAction targetListAction
 }
 
+func (a Update) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 func (a Update) Agent() person.Person {
 	return a.targetListAction.action.agent
 }

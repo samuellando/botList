@@ -1,7 +1,6 @@
 package list
 
 import (
-    "fmt"
     "fedilist/packages/model/hook"
     "fedilist/packages/model/tag"
 )
@@ -65,7 +64,6 @@ func Create(fs ...func(*ItemListValues)) ItemList {
 		f(&p)
 	}
 	n := len(p.ItemListElement)
-    fmt.Println(p.Hooks)
 	return ItemList{
 		id:              p.Id,
 		name:            p.Name,

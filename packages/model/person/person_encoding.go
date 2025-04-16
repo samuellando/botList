@@ -11,9 +11,10 @@ func (p Person) MarshalJSON() ([]byte, error) {
 	type External struct {
 		Type        string          `json:"@type"`
 		Id          string          `json:"@id,omitempty"`
-		Name        string          `json:"http://schema.org/Name,omitempty"`
-		Description string          `json:"http://schema.org/Description,omitempty"`
-		List        []list.ItemList `json:"http://fedilist.com/List,omitempty,omitempty"`
+		Name        string          `json:"http://schema.org/name,omitempty"`
+		Description string          `json:"http://schema.org/description,omitempty"`
+		Key         string          `json:"http://fedilist.com/key,omitempty"`
+		List        []list.ItemList `json:"http://fedilist.com/list,omitempty"`
 	}
 	return json.Marshal(External{
 		Type:        "http://schema.org/Person",
@@ -21,6 +22,7 @@ func (p Person) MarshalJSON() ([]byte, error) {
 		Name:        p.Name(),
 		Description: p.Description(),
 		List:        p.List(),
+		Key:         p.Key(),
 	})
 }
 

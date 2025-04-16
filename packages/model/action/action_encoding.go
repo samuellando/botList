@@ -2,21 +2,22 @@ package action
 
 import (
 	"encoding/json"
+	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
 	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
-    "fedilist/packages/jsonld"
+	"fmt"
 	"time"
-    "fmt"
 )
 
 func (a action) MarshalJSON() ([]byte, error) {
 	type External struct {
-        Agent     person.Person   `json:"http://schema.org/Agent"`
-		Object    list.ItemList   `json:"http://schema.org/Object"`
-		StartTime time.Time       `json:"http://schema.org/StartTime"`
-		EndTime   *time.Time      `json:"http://schema.org/EndTime,omitempty"`
-		Result    *result.Result  `json:"http://schema.org/Result,omitempty"`
+		Agent     person.Person  `json:"http://schema.org/Agent"`
+		Object    list.ItemList  `json:"http://schema.org/Object"`
+		StartTime time.Time      `json:"http://schema.org/StartTime"`
+		EndTime   *time.Time     `json:"http://schema.org/EndTime,omitempty"`
+		Result    *result.Result `json:"http://schema.org/Result,omitempty"`
+		Signature string         `json:"http://fedilist.com/Signature,omitempty"`
 	}
 	return json.Marshal(External{
 		Agent:     a.agent,
@@ -24,6 +25,7 @@ func (a action) MarshalJSON() ([]byte, error) {
 		StartTime: a.startTime,
 		EndTime:   a.endTime,
 		Result:    a.result,
+        Signature: a.signature,
 	})
 }
 

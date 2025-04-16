@@ -1,12 +1,17 @@
 package person
 
 import (
+    "crypto/ed25519"
+	"crypto/rand"
+    "encoding/base64"
+	"encoding/json"
 	"fedilist/packages/jsonld"
 	"fedilist/packages/model/action"
 	"fedilist/packages/model/list"
 	"fedilist/packages/model/person"
 	"fedilist/packages/util"
 	"fmt"
+    "io"
 	"net/http"
 )
 
@@ -22,7 +27,7 @@ type PersonService struct {
 	messageQueue chan []byte
 }
 
-func CreateService(store PersonStore, q chan []byte) PersonService {
+func Create(store PersonStore, q chan []byte) PersonService {
 	return PersonService{
 		store:        store,
 		messageQueue: q,
@@ -32,6 +37,28 @@ func CreateService(store PersonStore, q chan []byte) PersonService {
 func (ls PersonService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	id := req.PathValue("id")
 	endpoint := req.PathValue("endpoint")
+    if endpoint == "" && req.Method == "POST"  {
+        bodyBytes, err := io.ReadAll(req.Body)
+        if err != nil {
+            panic(err)
+        }
+        defer req.Body.Close()
+        data := make(map[string]any)
+        json.Unmarshal(bodyBytes, &data)
+        p, privateKey, err := ls.Create(func(pv *person.PersonValues) {
+            pv.Name = data["name"].(string)
+        })
+        out, err := json.MarshalIndent(map[string]any{
+            "id": p.Id(),
+            "privateKey": privateKey,
+        }, "", "    ")
+        if err != nil {
+            panic(err)
+        }
+        w.Write(out)
+        return
+    }
+
 	person, err := ls.store.GetByPartialId(id)
 	if err != nil {
 		panic(err)
@@ -47,8 +74,19 @@ func (ls PersonService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s PersonService) Create(fs ...func(*person.PersonValues)) (person.Person, error) {
-    return s.store.Insert(person.CreatePerson(fs...))
+func (s PersonService) Create(fs ...func(*person.PersonValues)) (person.Person, string, error) {
+    publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+    if err != nil {
+        panic(err)
+    }
+    fs = append(fs, func(pv *person.PersonValues) {
+        pv.Key = base64.StdEncoding.EncodeToString(publicKey)
+    })
+    p, err := s.store.Insert(person.CreatePerson(fs...))
+    if err != nil {
+        return p, "", err
+    }
+    return p, base64.StdEncoding.EncodeToString(privateKey.Seed()), nil
 }
 
 func (s PersonService) AddList(p person.Person, l list.ItemList) (person.Person, error) {

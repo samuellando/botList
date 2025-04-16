@@ -13,6 +13,10 @@ type Delete struct {
     targetListAction targetListAction
 }
 
+func (a Delete) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 func (a Delete) Agent() person.Person {
 	return a.targetListAction.action.agent
 }

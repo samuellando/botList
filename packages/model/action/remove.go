@@ -14,6 +14,10 @@ type Remove struct {
 	atIndex          int
 }
 
+func (a Remove) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 func (a Remove) Agent() person.Person {
 	return a.targetListAction.action.agent
 }

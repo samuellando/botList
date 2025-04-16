@@ -13,6 +13,10 @@ type Prepend struct {
 	targetListAction targetListAction
 }
 
+func (a Prepend) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 func (a Prepend) Agent() person.Person {
 	return a.targetListAction.action.agent
 }

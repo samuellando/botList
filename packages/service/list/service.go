@@ -25,7 +25,7 @@ type ListService struct {
     cronService  cron.CronService
 }
 
-func CreateService(store ListStore, q chan []byte) ListService {
+func Create(store ListStore, q chan []byte) ListService {
 	return ListService{
 		store:        store,
 		messageQueue: q,

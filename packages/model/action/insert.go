@@ -14,6 +14,10 @@ type Insert struct {
 	atIndex          int
 }
 
+func (a Insert) Signature() string {
+	return a.targetListAction.action.signature
+}
+
 func (a Insert) Agent() person.Person {
 	return a.targetListAction.action.agent
 }

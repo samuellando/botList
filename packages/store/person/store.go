@@ -44,6 +44,7 @@ func (s PersonStore) Insert(p person.Person) (person.Person, error) {
 		pv.Name = p.Name()
 		pv.Description = p.Description()
 		pv.List = p.List()
+        pv.Key = p.Key()
 	})
 	s.db[id] = p
 	return p, nil

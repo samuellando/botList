@@ -3,9 +3,9 @@ package action
 import (
 	"encoding/json"
 	"fedilist/packages/jsonld"
-	"fedilist/packages/model/runner"
 	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
+	"fedilist/packages/model/runner"
 	"fmt"
 	"time"
 )
@@ -13,6 +13,7 @@ import (
 type Execute struct {
 	agent              person.Person
 	object             Action
+	signature          string
 	targetRunner       runner.Runner
 	runnerAction       string
 	runnerActionConfig string
@@ -24,6 +25,7 @@ type Execute struct {
 type ExecuteValues struct {
 	Agent              person.Person
 	Object             Action
+	Signature          string
 	TargetRunner       runner.Runner
 	RunnerAction       string
 	RunnerActionConfig string
@@ -40,6 +42,7 @@ func CreateExecute(fs ...func(*ExecuteValues)) Execute {
 	return Execute{
 		agent:              v.Agent,
 		object:             v.Object,
+		signature:          v.Signature,
 		targetRunner:       v.TargetRunner,
 		runnerAction:       v.RunnerAction,
 		runnerActionConfig: v.RunnerActionConfig,
@@ -54,7 +57,8 @@ func (a Execute) MarshalJSON() ([]byte, error) {
 		Type               string         `json:"@type"`
 		Agent              person.Person  `json:"http://schema.org/agent"`
 		Object             Action         `json:"http://schema.org/object"`
-		TargetRunner       runner.Runner    `json:"http://fedilist.com/targetRunner"`
+		Signature          string         `json:"http://fedilist.com/signature"`
+		TargetRunner       runner.Runner  `json:"http://fedilist.com/targetRunner"`
 		RunnerAction       string         `json:"http://fedilist.com/runnerAction"`
 		RunnerActionConfig string         `json:"http://fedilist.com/runnerActionConfig"`
 		StartTime          time.Time      `json:"http://schema.org/startTime"`
@@ -65,6 +69,7 @@ func (a Execute) MarshalJSON() ([]byte, error) {
 		Type:               "http://fedilist.com/ExecuteAction",
 		Agent:              a.Agent(),
 		Object:             a.Object(),
+		Signature:          a.Signature(),
 		TargetRunner:       a.TargetRunner(),
 		RunnerAction:       a.RunnerAction(),
 		RunnerActionConfig: a.RunnerActionConfig(),
@@ -80,6 +85,10 @@ func (a Execute) Agent() person.Person {
 
 func (a Execute) Object() Action {
 	return a.object
+}
+
+func (a Execute) Signature() string {
+	return a.signature
 }
 
 func (a Execute) StartTime() time.Time {
@@ -166,7 +175,6 @@ func parseExecute(json map[string]any) (Execute, error) {
 	}
 
 	strs = jsonld.GetBaseTypeValues[string](fediOrgValues)
-    fmt.Println(strs)
 
 	var runnerAction string
 	if v, ok := strs["runnerAction"]; ok {
