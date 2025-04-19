@@ -46,6 +46,12 @@ func (a Remove) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
 }
 
+func (a Remove) Sign(s string) Action {
+	a.targetListAction.action.signature = s
+	return a
+}
+
+
 func (a Remove) WithResult(r result.Result) Action {
 	t := time.Now()
 	a.targetListAction.action.result = &r

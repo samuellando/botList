@@ -41,6 +41,11 @@ func (a Prepend) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
 }
 
+func (a Prepend) Sign(s string) Action {
+	a.targetListAction.action.signature = s
+	return a
+}
+
 func (a Prepend) WithResult(r result.Result) Action {
 	t := time.Now()
 	a.targetListAction.action.result = &r

@@ -39,6 +39,11 @@ func (a Create) TargetId() *string {
 	return nil
 }
 
+func (a Create) Sign(s string) Action {
+	a.action.signature = s
+	return a
+}
+
 func (a Create) WithResult(r result.Result) Action {
 	t := time.Now()
 	a.action.result = &r

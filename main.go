@@ -31,7 +31,7 @@ func main() {
 	rs := runnerService.Create(serverUrl()+"/runner", messages)
 
 	p, _, _ := ps.Create(func(pv *person.PersonValues) {
-		pv.Name = "Sam"
+        pv.Name = "Sam"
 	})
 
 	l, _ := ls.Create(func(ilv *list.ItemListValues) {

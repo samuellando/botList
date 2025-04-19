@@ -91,6 +91,11 @@ func (a Execute) Signature() string {
 	return a.signature
 }
 
+func (a Execute) Sign(s string) Action {
+	a.signature = s
+	return a 
+}
+
 func (a Execute) StartTime() time.Time {
 	return a.startTime
 }

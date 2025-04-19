@@ -10,6 +10,8 @@ type Person struct {
 	description string
 	list        []list.ItemList
 	key         string
+	inbox       string
+	outbox      string
 }
 
 func (p Person) Id() string {
@@ -32,12 +34,22 @@ func (p Person) Key() string {
 	return p.key
 }
 
+func (p Person) Inbox() string {
+	return p.inbox
+}
+
+func (p Person) Outbox() string {
+	return p.outbox
+}
+
 type PersonValues struct {
 	Id          string
 	Name        string
 	Description string
 	Key         string
 	List        []list.ItemList
+	Inbox       string
+	Outbox      string
 }
 
 func CreatePerson(fs ...func(*PersonValues)) Person {
@@ -53,6 +65,8 @@ func CreatePerson(fs ...func(*PersonValues)) Person {
 		description: pv.Description,
 		list:        pv.List,
 		key:         pv.Key,
+		inbox:       pv.Inbox,
+		outbox:      pv.Outbox,
 	}
 	return p
 }

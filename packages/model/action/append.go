@@ -11,10 +11,6 @@ type Append struct {
 	targetListAction targetListAction
 }
 
-func (a Append) Signature() string {
-	return a.targetListAction.action.signature
-}
-
 type AppendValues struct {
 	Agent            person.Person
 	Object           list.ItemList
@@ -66,6 +62,15 @@ func (a Append) WithResult(r result.Result) Action {
 	t := time.Now()
 	a.targetListAction.action.result = &r
 	a.targetListAction.action.endTime = &t
+	return a
+}
+
+func (a Append) Signature() string {
+	return a.targetListAction.action.signature
+}
+
+func (a Append) Sign(s string) Action {
+	a.targetListAction.action.signature = s
 	return a
 }
 

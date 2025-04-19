@@ -41,6 +41,11 @@ func (a Update) TargetId() *string {
 	return a.targetListAction.targetCollection.Id()
 }
 
+func (a Update) Sign(s string) Action {
+	a.targetListAction.action.signature = s
+	return a
+}
+
 func (a Update) WithResult(r result.Result) Action {
 	t := time.Now()
 	a.targetListAction.action.result = &r

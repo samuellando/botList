@@ -15,6 +15,8 @@ func (p Person) MarshalJSON() ([]byte, error) {
 		Description string          `json:"http://schema.org/description,omitempty"`
 		Key         string          `json:"http://fedilist.com/key,omitempty"`
 		List        []list.ItemList `json:"http://fedilist.com/list,omitempty"`
+		Inbox       string          `json:"http://fedilist.com/inbox,omitempty"`
+		Outbox      string          `json:"http://fedilist.com/outbox,omitempty"`
 	}
 	return json.Marshal(External{
 		Type:        "http://schema.org/Person",
@@ -23,6 +25,8 @@ func (p Person) MarshalJSON() ([]byte, error) {
 		Description: p.Description(),
 		List:        p.List(),
 		Key:         p.Key(),
+		Inbox:       p.Inbox(),
+		Outbox:      p.Outbox(),
 	})
 }
 

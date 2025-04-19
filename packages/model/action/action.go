@@ -22,6 +22,7 @@ type Action interface {
 	TargetId() *string
 	WithResult(result.Result) Action
 	Signature() string
+	Sign(string) Action
 }
 
 type actionValues struct {

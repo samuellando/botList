@@ -10,12 +10,14 @@ import (
 type PersonStore struct {
 	base string
 	db   map[string]person.Person
+    keys map[string][]byte
 }
 
 func CreateStore(base string) PersonStore {
 	return PersonStore{
 		base: base,
 		db:   make(map[string]person.Person),
+		keys:   make(map[string][]byte),
 	}
 }
 
@@ -25,6 +27,15 @@ func (s PersonStore) GetById(id string) (person.Person, error) {
 	} else {
 		return person.Person{}, fmt.Errorf("not found")
 	}
+}
+
+func (s PersonStore) StoreKey(p person.Person, key []byte) error {
+    s.keys[p.Id()] = key
+    return nil
+}
+
+func (s PersonStore) GetKey(p person.Person) ([]byte, error) {
+    return s.keys[p.Id()], nil
 }
 
 func (s PersonStore) GetByPartialId(pid string) (person.Person, error) {
@@ -45,6 +56,8 @@ func (s PersonStore) Insert(p person.Person) (person.Person, error) {
 		pv.Description = p.Description()
 		pv.List = p.List()
         pv.Key = p.Key()
+        pv.Inbox = strings.ToLower(s.base + p.Name() + "/inbox")
+        pv.Outbox = strings.ToLower(s.base + p.Name() + "/outbox")
 	})
 	s.db[id] = p
 	return p, nil

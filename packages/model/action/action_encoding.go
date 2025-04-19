@@ -32,6 +32,7 @@ func (a action) MarshalJSON() ([]byte, error) {
 func parseAction(json map[string]any) (action, error) {
 	var err error
 	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")
+	fediValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	objs := jsonld.GetCompositeTypeValues(schemaOrgValues)
 
 	var agent person.Person
@@ -84,11 +85,18 @@ func parseAction(json map[string]any) (action, error) {
 		res = &r
 	}
 
+	strs := jsonld.GetBaseTypeValues[string](fediValues)
+	var sig string
+	if s, ok := strs["signature"]; ok {
+		sig = s
+	}
+
 	return action{
 		agent:     agent,
 		object:    object,
 		startTime: startTime,
 		endTime:   endTime,
 		result:    res,
+		signature: sig,
 	}, nil
 }
