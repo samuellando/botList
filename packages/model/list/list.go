@@ -1,34 +1,35 @@
 package list
 
 import (
-    "fedilist/packages/model/hook"
-    "fedilist/packages/model/tag"
+	"fedilist/packages/model/hook"
+	"fedilist/packages/model/tag"
 )
 
 type ItemList struct {
-	id              *string
-	name            *string
-	description     *string
-	url             *string
+	id              string
+	name            string
+	description     string
+	url             string
 	tags            []tag.Tag
 	hooks           []hook.Hook
-	numberOfItems   *int
+	numberOfItems   int
 	itemListElement []ItemList
+	key             string
 }
 
-func (l ItemList) Id() *string {
+func (l ItemList) Id() string {
 	return l.id
 }
 
-func (l ItemList) Name() *string {
+func (l ItemList) Name() string {
 	return l.name
 }
 
-func (l ItemList) Description() *string {
+func (l ItemList) Description() string {
 	return l.description
 }
 
-func (l ItemList) Url() *string {
+func (l ItemList) Url() string {
 	return l.url
 }
 
@@ -40,18 +41,23 @@ func (l ItemList) Hooks() []hook.Hook {
 	return l.hooks
 }
 
+func (l ItemList) Key() string {
+	return l.key
+}
+
 func (l ItemList) ItemListElement() []ItemList {
 	return l.itemListElement
 }
 
 type ItemListValues struct {
-	Id              *string
-	Name            *string
-	Description     *string
-	Url             *string
+	Id              string
+	Name            string
+	Description     string
+	Url             string
 	Tags            []tag.Tag
 	Hooks           []hook.Hook
 	ItemListElement []ItemList
+	Key             string
 }
 
 func Create(fs ...func(*ItemListValues)) ItemList {
@@ -68,15 +74,16 @@ func Create(fs ...func(*ItemListValues)) ItemList {
 		id:              p.Id,
 		name:            p.Name,
 		description:     p.Description,
-		numberOfItems:   &n,
+		numberOfItems:   n,
 		itemListElement: p.ItemListElement,
 		tags:            p.Tags,
 		hooks:           p.Hooks,
+		key:             p.Key,
 	}
 }
 
 func (l *ItemList) Append(e ItemList) {
 	l.itemListElement = append(l.itemListElement, e)
 	n := len(l.itemListElement)
-	l.numberOfItems = &n
-}
+	l.numberOfItems = n
+}	

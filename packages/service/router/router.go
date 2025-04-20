@@ -1,11 +1,12 @@
 package router
 
 import (
-	"fedilist/packages/model/action"
-	"fedilist/packages/jsonld"
-	"fmt"
 	"bytes"
-    "net/http"
+	"fedilist/packages/jsonld"
+	"fedilist/packages/model/action"
+	"fmt"
+	"io"
+	"net/http"
 )
 
 func ProcessMessages(q chan []byte) {
@@ -36,7 +37,12 @@ func ProcessMessages(q chan []byte) {
             panic(err)
         }
         if resp.StatusCode != 202 {
-            panic("Server responded with a bad error code")
+			txt, err := io.ReadAll(resp.Body)
+			if err != nil {
+				panic(err)
+			}
+			defer resp.Body.Close()
+			panic("Server responded with a bad error code: "+string(txt))
         }
         continue
 	}

@@ -104,7 +104,7 @@ func (ls PersonService) handleOutbox(p person.Person, w http.ResponseWriter, req
 		http.Error(w, "Only POST is supported to outbox", 400)
 		return
 	}
-	data, err := util.GetBodyJsonld(req)
+	data, err := util.GetBodyJsonld(req.Body)
 	if err != nil {
 		panic(err)
 	}

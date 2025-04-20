@@ -2,7 +2,6 @@ package action
 
 import (
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"time"
 )
@@ -15,7 +14,7 @@ func (a Create) Signature() string {
 	return a.action.signature
 }
 
-func (a Create) Agent() person.Person {
+func (a Create) Agent() Agent {
 	return a.action.agent
 }
 

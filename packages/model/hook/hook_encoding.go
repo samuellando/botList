@@ -55,6 +55,7 @@ func Parse(json map[string]any) (Hook, error) {
 func parseHook(json map[string]any) (hook, error) {
 	orgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	strs := jsonld.GetBaseTypeValues[string](orgValues)
+	objs := jsonld.GetCompositeTypeValues(orgValues)
 	var runnerAction string
 	if v, ok := strs["runnerAction"]; ok {
 		runnerAction = v
@@ -67,7 +68,18 @@ func parseHook(json map[string]any) (hook, error) {
 	} else {
 		return hook{}, fmt.Errorf("Hooks must have a runner action config")
 	}
+	var r runner.Runner
+	var err error
+	if o, ok := objs["runner"]; ok {
+		r, err = runner.Parse(o)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		return hook{}, fmt.Errorf("Hooks must have a runner action config")
+	}
 	return hook{
+		runner: r,
 		runnerAction:       runnerAction,
 		runnerActionConfig: runnerActionConfig,
 	}, nil

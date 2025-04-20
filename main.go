@@ -36,7 +36,7 @@ func main() {
 
 	l, _ := ls.Create(func(ilv *list.ItemListValues) {
 		name := "Sam's list"
-		ilv.Name = &name
+		ilv.Name = name
 		h, err := hook.CreateActionHook(func(ahv *hook.ActionHookValues) {
 			ahv.Runner = rs.Runner()
 			ahv.RunnerAction = "CopyTo"
@@ -60,7 +60,7 @@ func main() {
 
 	ls.Create(func(ilv *list.ItemListValues) {
 		name := "Target list"
-		ilv.Name = &name
+		ilv.Name = name
 	})
 
 	ps.AddList(p, l)

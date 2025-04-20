@@ -7,6 +7,7 @@ type Runner struct {
 	name    string
 	inbox   string
 	service []Service
+	key     string
 }
 
 type RunnerValues struct {
@@ -14,18 +15,23 @@ type RunnerValues struct {
 	Name    string
 	Inbox   string
 	Service []Service
+	Key     string
 }
 
-func (r Runner) Id() *string {
-	return &r.id
+func (r Runner) Id() string {
+	return r.id
 }
 
-func (r Runner) Name() *string {
-	return &r.name
+func (r Runner) Name() string {
+	return r.name
 }
 
-func (r Runner) Inbox() *string {
-	return &r.inbox
+func (r Runner) Inbox() string {
+	return r.inbox
+}
+
+func (r Runner) Key() string {
+	return r.key
 }
 
 func (r Runner) Services() []Service {
@@ -41,9 +47,10 @@ func Create(fs ...func(*RunnerValues)) (Runner, error) {
 		return Runner{}, fmt.Errorf("Runner requies name, id and inbox URL")
 	}
 	return Runner{
-		id:    v.Id,
-		name:  v.Name,
-		inbox: v.Inbox,
-        service: v.Service,
+		id:      v.Id,
+		name:    v.Name,
+		inbox:   v.Inbox,
+		service: v.Service,
+		key:     v.Key,
 	}, nil
 }

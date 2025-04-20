@@ -8,11 +8,13 @@ import (
 type ListStore struct {
 	base string
 	db   map[string]list.ItemList
+	keys map[string][]byte
 }
 
 func CreateStore(base string) ListStore {
 	return ListStore{
 		base: base,
+		keys: make(map[string][]byte),
 		db:   make(map[string]list.ItemList),
 	}
 }
@@ -28,21 +30,32 @@ func (s ListStore) GetByPartialId(id string) (list.ItemList, error) {
 func (s ListStore) Insert(l list.ItemList) (list.ItemList, error) {
 	id := string(s.base + strconv.Itoa(len(s.db)))
 	withId := list.Create(func(ilv *list.ItemListValues) {
-		ilv.Id = &id
+		ilv.Id = id
 		ilv.Name = l.Name()
 		ilv.Description = l.Description()
 		ilv.Url = l.Url()
 		ilv.Tags = l.Tags()
 		ilv.ItemListElement = l.ItemListElement()
 		ilv.Hooks = l.Hooks()
+		ilv.Key = l.Key()
 	})
 	s.db[id] = withId
 	return withId, nil
 }
 
 func (s ListStore) Append(to, e list.ItemList) (list.ItemList, error) {
-	l := s.db[*to.Id()]
+	l := s.db[to.Id()]
 	l.Append(e)
-	s.db[*l.Id()] = l
+	s.db[l.Id()] = l
 	return l, nil
 }
+
+func (s ListStore) StoreKey(l list.ItemList, key []byte) error {
+    s.keys[l.Id()] = key
+    return nil
+}
+
+func (s ListStore) GetKey(l list.ItemList) ([]byte, error) {
+    return s.keys[l.Id()], nil
+}
+

@@ -1,11 +1,14 @@
 package runner
 
 import (
-	"fedilist/packages/model/action"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/base64"
 	"fedilist/packages/jsonld"
+	"fedilist/packages/model/action"
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/runner"
 	"fedilist/packages/model/result"
+	"fedilist/packages/model/runner"
 	"fedilist/packages/util"
 	"fmt"
 	"net/http"
@@ -15,9 +18,11 @@ import (
 type Service struct {
 	messageQueue chan []byte
 	runner       runner.Runner
+	key          []byte
 }
 
 func Create(id string, q chan []byte) Service {
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	r, err := runner.Create(func(rv *runner.RunnerValues) {
 		rv.Id = id
 		rv.Name = "Default Runner"
@@ -32,6 +37,7 @@ func Create(id string, q chan []byte) Service {
 				Schema: `{"example": "ok"}`,
 			},
 		}
+		rv.Key = base64.StdEncoding.EncodeToString(publicKey)
 	})
 	if err != nil {
 		panic(err)
@@ -39,6 +45,7 @@ func Create(id string, q chan []byte) Service {
 	return Service{
 		messageQueue: q,
 		runner:       r,
+		key:          privateKey.Seed(),
 	}
 }
 
@@ -56,7 +63,7 @@ func (rs Service) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Only POST is supported to inboxes", 400)
 			return
 		}
-		json, err := util.GetBodyJsonld(req)
+		json, err := util.GetBodyJsonld(req.Body)
 		if err != nil {
 			panic(err)
 		}
@@ -64,6 +71,34 @@ func (rs Service) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		var resp *http.Response
+		if act.Result() == nil {
+			resp, err = http.Get(act.Agent().Id())
+		} else {
+			resp, err = http.Get(*act.TargetId())
+		}
+		personJson, err := util.GetBodyJsonld(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		agent, err := action.ParseAgent(personJson)
+		if err != nil {
+			panic(err)
+		}
+		valid, err := util.VerifySignature(act, agent.Key())
+		if err != nil {
+			panic(err)
+		}
+		if !valid {
+			http.Error(w, "Could not verify message signature", 403)
+			return
+		}
+		if act.Result() != nil {
+			fmt.Println("Runner GOT RESULT")
+			w.WriteHeader(202)
+			return
+		}
+
 		switch ea := act.(type) {
 		case action.Execute:
 			switch ea.RunnerAction() {
@@ -75,20 +110,30 @@ func (rs Service) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					oa := ea.Object().(action.Append)
 					tl := list.Create(func(ilv *list.ItemListValues) {
 						rac := ea.RunnerActionConfig()
-						ilv.Id = &rac
+						ilv.Id = rac
 					})
 					if err != nil {
 						panic(err)
 					}
-					av.Agent = ea.Agent()
+					av.Agent = rs.runner
 					av.Object = oa.Object()
 					av.StartTime = time.Now()
 					av.TargetCollection = tl
 				})
-				rs.messageQueue <- jsonld.Marshal(ca)
+				sig, err := util.GetSignature(ca, rs.key)
+				if err != nil {
+					panic(err)
+				}
+				signed := ca.Sign(sig)
+				rs.messageQueue <- jsonld.Marshal(signed)
 
 				act = act.WithResult(result.Create("201", "RAN HOOK"))
-				rs.messageQueue <- jsonld.Marshal(act)
+				sig, err = util.GetSignature(act, rs.key)
+				if err != nil {
+					panic(err)
+				}
+				signed = act.Sign(sig)
+				rs.messageQueue <- jsonld.Marshal(signed)
 				w.WriteHeader(202)
 			default:
 				panic("Not a runner action")

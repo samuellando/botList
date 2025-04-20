@@ -37,11 +37,7 @@ func LoadPerson(json map[string]any) (Person, error) {
 	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")
 	strs := jsonld.GetBaseTypeValues[string](schemaOrgValues)
 
-	var id string
-	pid := jsonld.GetId(json)
-	if pid != nil {
-		id = *pid
-	}
+	id := jsonld.GetId(json)
 	var name string
 	if v, ok := strs["name"]; ok {
 		name = v
@@ -51,9 +47,18 @@ func LoadPerson(json map[string]any) (Person, error) {
 		description = v
 	}
 
+	fediOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
+	strs = jsonld.GetBaseTypeValues[string](fediOrgValues)
+
+	var key string
+	if v, ok := strs["key"]; ok {
+		key = v
+	}
+
 	return Person{
 		id:          id,
 		name:        name,
 		description: description,
+		key: key,
 	}, nil
 }

@@ -3,7 +3,6 @@ package action
 import (
 	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"fmt"
 	"time"
@@ -15,7 +14,7 @@ type targetListAction struct {
 }
 
 type targetListActionValues struct {
-	Agent            person.Person
+	Agent            Agent
 	Object           list.ItemList
 	StartTime        time.Time
 	EndTime          *time.Time
@@ -43,7 +42,7 @@ func createTargetListAction(fs ...func(*targetListActionValues)) targetListActio
 
 type marshaledTargetListAction struct {
 	Type             string         `json:"@type"`
-	Agent            person.Person  `json:"http://schema.org/agent"`
+	Agent            Agent         `json:"http://schema.org/agent"`
 	Object           list.ItemList  `json:"http://schema.org/object"`
 	StartTime        time.Time      `json:"http://schema.org/startTime"`
 	EndTime          *time.Time     `json:"http://schema.org/endTime,omitempty"`

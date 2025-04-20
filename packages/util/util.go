@@ -1,17 +1,16 @@
 package util
 
 import (
-	"fedilist/packages/jsonld"
-	"encoding/json"
-	"io"
 	"crypto/ed25519"
 	"encoding/base64"
-	"net/http"
+	"encoding/json"
+	"fedilist/packages/jsonld"
+	"io"
 )
 
-func GetBodyJsonld(req *http.Request) (map[string]any, error) {
-	bodyBytes, err := io.ReadAll(req.Body)
-	defer req.Body.Close()
+func GetBodyJsonld(rc io.ReadCloser) (map[string]any, error) {
+	bodyBytes, err := io.ReadAll(rc)
+	defer rc.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -21,6 +20,7 @@ func GetBodyJsonld(req *http.Request) (map[string]any, error) {
 
 type Signable[T any] interface {
 	Sign(string) T
+	Signature() string
 }
 
 func GetSignature[T any](o Signable[T], seed []byte) (string, error) {
@@ -33,3 +33,25 @@ func GetSignature[T any](o Signable[T], seed []byte) (string, error) {
 	sig := ed25519.Sign(privateKey, txt)
 	return base64.StdEncoding.EncodeToString(sig), nil
 }
+
+func VerifySignature[T any](o Signable[T], key string) (bool, error) {
+	noSig := o.Sign("")
+	txt, err := json.Marshal(noSig)
+	if err != nil {
+		return false, err
+	}
+	// Decode the base64-encoded public key
+	publicKey, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return false, err
+	}
+	// Retrieve the signature from the object
+	signature, err := base64.StdEncoding.DecodeString(o.Signature())
+	if err != nil {
+		return false, err
+	}
+	// Verify the signature
+	isValid := ed25519.Verify(publicKey, txt, signature)
+	return isValid, nil
+}
+

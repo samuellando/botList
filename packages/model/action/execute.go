@@ -3,7 +3,6 @@ package action
 import (
 	"encoding/json"
 	"fedilist/packages/jsonld"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"fedilist/packages/model/runner"
 	"fmt"
@@ -11,7 +10,7 @@ import (
 )
 
 type Execute struct {
-	agent              person.Person
+	agent              Agent
 	object             Action
 	signature          string
 	targetRunner       runner.Runner
@@ -23,7 +22,7 @@ type Execute struct {
 }
 
 type ExecuteValues struct {
-	Agent              person.Person
+	Agent              Agent
 	Object             Action
 	Signature          string
 	TargetRunner       runner.Runner
@@ -55,7 +54,7 @@ func CreateExecute(fs ...func(*ExecuteValues)) Execute {
 func (a Execute) MarshalJSON() ([]byte, error) {
 	type External struct {
 		Type               string         `json:"@type"`
-		Agent              person.Person  `json:"http://schema.org/agent"`
+		Agent              Agent          `json:"http://schema.org/agent"`
 		Object             Action         `json:"http://schema.org/object"`
 		Signature          string         `json:"http://fedilist.com/signature"`
 		TargetRunner       runner.Runner  `json:"http://fedilist.com/targetRunner"`
@@ -79,7 +78,7 @@ func (a Execute) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (a Execute) Agent() person.Person {
+func (a Execute) Agent() Agent {
 	return a.agent
 }
 
@@ -93,7 +92,7 @@ func (a Execute) Signature() string {
 
 func (a Execute) Sign(s string) Action {
 	a.signature = s
-	return a 
+	return a
 }
 
 func (a Execute) StartTime() time.Time {
@@ -109,7 +108,8 @@ func (a Execute) Result() *result.Result {
 }
 
 func (a Execute) TargetId() *string {
-	return a.targetRunner.Id()
+	id := a.targetRunner.Id()
+	return &id
 }
 
 func (a Execute) TargetRunner() runner.Runner {
@@ -140,9 +140,9 @@ func parseExecute(json map[string]any) (Execute, error) {
 	fediOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	objs := jsonld.GetCompositeTypeValues(schemaOrgValues)
 
-	var agent person.Person
+	var agent Agent
 	if json, ok := objs["agent"]; ok {
-		agent, err = person.LoadPerson(json)
+		agent, err = ParseAgent(json)
 		if err != nil {
 			return Execute{}, err
 		}
@@ -187,6 +187,13 @@ func parseExecute(json map[string]any) (Execute, error) {
 	} else {
 		return Execute{}, fmt.Errorf("Must have a runner action")
 	}
+	
+	var signature string
+	if v, ok := strs["signature"]; ok {
+		signature = v
+	} else {
+		return Execute{}, fmt.Errorf("Must have a runner action")
+	}
 
 	var runnerActionConfig string
 	if v, ok := strs["runnerActionConfig"]; ok {
@@ -225,5 +232,6 @@ func parseExecute(json map[string]any) (Execute, error) {
 		targetRunner:       r,
 		runnerAction:       runnerAction,
 		runnerActionConfig: runnerActionConfig,
+		signature: signature,
 	}, nil
 }

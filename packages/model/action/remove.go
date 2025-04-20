@@ -3,7 +3,6 @@ package action
 import (
 	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"fmt"
 	"time"
@@ -18,7 +17,7 @@ func (a Remove) Signature() string {
 	return a.targetListAction.action.signature
 }
 
-func (a Remove) Agent() person.Person {
+func (a Remove) Agent() Agent {
 	return a.targetListAction.action.agent
 }
 
@@ -43,7 +42,8 @@ func (a Remove) AtIndex() int {
 }
 
 func (a Remove) TargetId() *string {
-	return a.targetListAction.targetCollection.Id()
+	id := a.targetListAction.targetCollection.Id()
+	return &id
 }
 
 func (a Remove) Sign(s string) Action {

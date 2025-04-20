@@ -3,7 +3,6 @@ package action
 import (
 	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"fmt"
 	"time"
@@ -17,7 +16,7 @@ func (a Prepend) Signature() string {
 	return a.targetListAction.action.signature
 }
 
-func (a Prepend) Agent() person.Person {
+func (a Prepend) Agent() Agent {
 	return a.targetListAction.action.agent
 }
 
@@ -38,7 +37,8 @@ func (a Prepend) Result() *result.Result {
 }
 
 func (a Prepend) TargetId() *string {
-	return a.targetListAction.targetCollection.Id()
+	id := a.targetListAction.targetCollection.Id()
+	return &id
 }
 
 func (a Prepend) Sign(s string) Action {

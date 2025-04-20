@@ -108,17 +108,20 @@ func GetBaseTypeArrayValues[T any](json map[string]any) map[string][]T {
 	baseTypeValues := make(map[string][]T)
 	for k, v := range json {
 		if a, ok := v.([]any); ok {
-			if o, ok := a[0].(map[string]any); ok {
-				if ov, ok := o["@value"]; ok {
-					if t, ok := ov.(T); ok {
-						if _, ok := baseTypeValues[k]; ok {
-							baseTypeValues[k] = append(baseTypeValues[k], t)
-						} else {
-							baseTypeValues[k] = make([]T, 1)
-							baseTypeValues[k][0] = t
+			for _, v := range a {
+				if o, ok := v.(map[string]any); ok {
+					if ov, ok := o["@value"]; ok {
+						if t, ok := ov.(T); ok {
+							if _, ok := baseTypeValues[k]; ok {
+								baseTypeValues[k] = append(baseTypeValues[k], t)
+							} else {
+								baseTypeValues[k] = make([]T, 1)
+								baseTypeValues[k][0] = t
+							}
 						}
 					}
 				}
+
 			}
 		}
 	}
@@ -145,12 +148,10 @@ func GetCompositeTypeArrayValues(json map[string]any) map[string][]map[string]an
 		if a, ok := v.([]any); ok {
 			if o, ok := a[0].(map[string]any); ok {
 				if _, ok := o["@type"]; ok {
-                    if _, ok := values[k]; ok {
-                        values[k] = append(values[k], o)
-                    } else {
-                        values[k] = make([]map[string]any, 1)
-                        values[k][0] = o 
-                    }
+					values[k] = make([]map[string]any, len(a))
+					for i, v := range a {
+						values[k][i] = v.(map[string]any)
+					}
 				}
 			}
 		}
@@ -170,13 +171,13 @@ func GetNamespaceValues(json map[string]any, namespace string) map[string]any {
 	return nsValues
 }
 
-func GetId(json map[string]any) *string {
+func GetId(json map[string]any) string {
 	if v, ok := json["@id"]; ok {
 		if s, ok := v.(string); ok {
-			return &s
+			return s
 		}
 	}
-	return nil
+	return ""
 }
 
 func GetType(json map[string]any) string {

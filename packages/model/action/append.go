@@ -2,7 +2,6 @@ package action
 
 import (
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"time"
 )
@@ -12,7 +11,7 @@ type Append struct {
 }
 
 type AppendValues struct {
-	Agent            person.Person
+	Agent            Agent
 	Object           list.ItemList
 	StartTime        time.Time
 	EndTime          *time.Time
@@ -38,7 +37,7 @@ func CreateAppend(fs ...func(*AppendValues)) Append {
 	}
 }
 
-func (a Append) Agent() person.Person {
+func (a Append) Agent() Agent {
 	return a.targetListAction.action.agent
 }
 
@@ -75,7 +74,8 @@ func (a Append) Sign(s string) Action {
 }
 
 func (a Append) TargetId() *string {
-	return a.targetListAction.targetCollection.Id()
+	id := a.targetListAction.targetCollection.Id()
+	return &id
 }
 
 func (a Append) TargetCollection() list.ItemList {

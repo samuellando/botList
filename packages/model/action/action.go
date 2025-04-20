@@ -2,13 +2,12 @@ package action
 
 import (
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"time"
 )
 
 type action struct {
-	agent     person.Person
+	agent     Agent
 	object    list.ItemList
 	startTime time.Time
 	endTime   *time.Time
@@ -17,7 +16,7 @@ type action struct {
 }
 
 type Action interface {
-	Agent() person.Person
+	Agent() Agent
 	Result() *result.Result
 	TargetId() *string
 	WithResult(result.Result) Action
@@ -25,8 +24,13 @@ type Action interface {
 	Sign(string) Action
 }
 
+type Agent interface {
+	Id() string
+	Key() string
+}
+
 type actionValues struct {
-	Agent     person.Person
+	Agent     Agent
 	Object    list.ItemList
 	StartTime time.Time
 	EndTime   *time.Time
@@ -45,6 +49,6 @@ func createAction(fs ...func(*actionValues)) action {
 		startTime: v.StartTime,
 		endTime:   v.EndTime,
 		result:    v.Result,
-        signature: v.Signature,
+		signature: v.Signature,
 	}
 }

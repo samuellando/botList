@@ -10,15 +10,16 @@ import (
 
 func (l ItemList) MarshalJSON() ([]byte, error) {
 	type External struct {
-		Type            string     `json:"@type"`
-		Id              *string    `json:"@id,omitempty"`
-		Name            *string    `json:"http://schema.org/name,omitempty"`
-		Description     *string    `json:"http://schema.org/description,omitempty"`
-		Url             *string    `json:"http://schema.org/url,omitempty"`
-		Tags            []tag.Tag      `json:"http://schema.org/tags,omitempty"`
-		Hooks           []hook.Hook     `json:"http://fedilist.com/hooks,omitempty"`
-		NumberOfItems   *int       `json:"http://schema.org/numberOfItems,omitempty"`
-		ItemListElement []ItemList `json:"http://schema.org/itemListElement,omitempty"`
+		Type            string      `json:"@type"`
+		Id              string     `json:"@id,omitempty"`
+		Name            string     `json:"http://schema.org/name,omitempty"`
+		Description     string     `json:"http://schema.org/description,omitempty"`
+		Url             string     `json:"http://schema.org/url,omitempty"`
+		Tags            []tag.Tag   `json:"http://schema.org/tags,omitempty"`
+		Hooks           []hook.Hook `json:"http://fedilist.com/hooks,omitempty"`
+		NumberOfItems   int        `json:"http://schema.org/numberOfItems"`
+		ItemListElement []ItemList  `json:"http://schema.org/itemListElement,omitempty"`
+		Key             string      `json:"http://fedilist.com/key,omitempty"`
 	}
 	return json.Marshal(External{
 		Type:            "http://schema.org/ItemList",
@@ -30,6 +31,7 @@ func (l ItemList) MarshalJSON() ([]byte, error) {
 		Hooks:           l.hooks,
 		NumberOfItems:   l.numberOfItems,
 		ItemListElement: l.itemListElement,
+		Key:             l.key,
 	})
 }
 
@@ -38,26 +40,27 @@ func Parse(json map[string]any) (ItemList, error) {
 		return ItemList{}, fmt.Errorf("Type must be ItemList")
 	}
 	schemaOrgValues := jsonld.GetNamespaceValues(json, "http://schema.org")
+	fediOrgValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	strs := jsonld.GetBaseTypeValues[string](schemaOrgValues)
-	ints := jsonld.GetBaseTypeValues[int](schemaOrgValues)
+	ints := jsonld.GetBaseTypeValues[float64](schemaOrgValues)
 	objLs := jsonld.GetCompositeTypeArrayValues(schemaOrgValues)
-	var name *string
+	var name string
 	if v, ok := strs["name"]; ok {
-		name = &v
+		name = v
 	}
-	var numberOfItems *int
+	var numberOfItems int
 	if v, ok := ints["numberOfItems"]; ok {
-		numberOfItems = &v
+		numberOfItems = int(v)
 	}
 
-	var id *string = jsonld.GetId(json)
-	var description *string
+	var id string = jsonld.GetId(json)
+	var description string
 	if v, ok := strs["description"]; ok {
-		description = &v
+		description = v
 	}
-	var url *string
+	var url string
 	if v, ok := strs["url"]; ok {
-		url = &v
+		url = v
 	}
 
 	var tags []tag.Tag
@@ -84,6 +87,7 @@ func Parse(json map[string]any) (ItemList, error) {
 		}
 	}
 
+	objLs = jsonld.GetCompositeTypeArrayValues(fediOrgValues)
 	var hooks []hook.Hook
 	if l, ok := objLs["hooks"]; ok {
 		hooks = make([]hook.Hook, len(l))
@@ -96,6 +100,13 @@ func Parse(json map[string]any) (ItemList, error) {
 		}
 	}
 
+	strs = jsonld.GetBaseTypeValues[string](fediOrgValues)
+
+	var key string
+	if v, ok := strs["key"]; ok {
+		key = v
+	}
+
 	return ItemList{
 		id:              id,
 		name:            name,
@@ -105,5 +116,6 @@ func Parse(json map[string]any) (ItemList, error) {
 		hooks:           hooks,
 		numberOfItems:   numberOfItems,
 		itemListElement: itemListElement,
+		key:             key,
 	}, nil
 }

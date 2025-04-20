@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	"fedilist/packages/model/result"
 	"fmt"
 	"time"
@@ -12,7 +11,7 @@ import (
 
 func (a action) MarshalJSON() ([]byte, error) {
 	type External struct {
-		Agent     person.Person  `json:"http://schema.org/Agent"`
+		Agent     Agent  `json:"http://schema.org/Agent"`
 		Object    list.ItemList  `json:"http://schema.org/Object"`
 		StartTime time.Time      `json:"http://schema.org/StartTime"`
 		EndTime   *time.Time     `json:"http://schema.org/EndTime,omitempty"`
@@ -35,9 +34,9 @@ func parseAction(json map[string]any) (action, error) {
 	fediValues := jsonld.GetNamespaceValues(json, "http://fedilist.com")
 	objs := jsonld.GetCompositeTypeValues(schemaOrgValues)
 
-	var agent person.Person
+	var agent Agent
 	if json, ok := objs["agent"]; ok {
-		agent, err = person.LoadPerson(json)
+		agent, err = ParseAgent(json)
 		if err != nil {
 			return action{}, err
 		}
