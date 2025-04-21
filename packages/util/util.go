@@ -23,15 +23,17 @@ type Signable[T any] interface {
 	Signature() string
 }
 
-func GetSignature[T any](o Signable[T], seed []byte) (string, error) {
+func Sign[T any](o Signable[T], seed []byte) T {
 	privateKey := ed25519.NewKeyFromSeed(seed)
+	// Clear any existing signature
 	noSig := o.Sign("")
+	// Get a signature for the message
 	txt, err := json.Marshal(noSig)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	sig := ed25519.Sign(privateKey, txt)
-	return base64.StdEncoding.EncodeToString(sig), nil
+	signature := base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, txt))
+	return o.Sign(signature)
 }
 
 func VerifySignature[T any](o Signable[T], key string) (bool, error) {
@@ -54,4 +56,3 @@ func VerifySignature[T any](o Signable[T], key string) (bool, error) {
 	isValid := ed25519.Verify(publicKey, txt, signature)
 	return isValid, nil
 }
-

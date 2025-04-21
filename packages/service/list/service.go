@@ -135,12 +135,7 @@ func (s ListService) Create(fs ...func(*list.ItemListValues)) (list.ItemList, er
 			if err != nil {
 				panic(err)
 			}
-			sig, err := util.GetSignature(ea, pk)
-			if err != nil {
-				panic(err)
-			}
-			signed := ea.Sign(sig)
-			b := jsonld.MarshalIndent(signed)
+			b := jsonld.MarshalIndent(util.Sign(ea, pk))
 			s.cronService.AddJob(cron.CronJob{
 				Crontab: ch.CronTab(),
 				Message: b,
@@ -180,12 +175,7 @@ func (ls ListService) Append(w http.ResponseWriter, act action.Append) {
 		panic(err)
 	}
 	res := act.WithResult(result.Create("201", "Appended"))
-	sig, err := util.GetSignature(res, pk)
-	if err != nil {
-		panic(err)
-	}
-	signed := res.Sign(sig)
-	jsonB := jsonld.Marshal(signed)
+	jsonB := jsonld.Marshal(util.Sign(res, pk))
 	ls.messageQueue <- jsonB
 	w.WriteHeader(202)
 
@@ -200,12 +190,7 @@ func (ls ListService) Append(w http.ResponseWriter, act action.Append) {
 				ev.RunnerAction = h.RunnerAction()
 				ev.RunnerActionConfig = h.RunnerActionConfig()
 			})
-			sig, err := util.GetSignature(ea, pk)
-			if err != nil {
-				panic(err)
-			}
-			signed := ea.Sign(sig)
-			b := jsonld.MarshalIndent(signed)
+			b := jsonld.MarshalIndent(util.Sign(ea, pk))
 			ls.messageQueue <- b
 		}
 	}

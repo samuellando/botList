@@ -117,11 +117,7 @@ func (ls PersonService) handleOutbox(p person.Person, w http.ResponseWriter, req
 		return
 	}
     seed, err := ls.store.GetKey(p)
-	s, err := util.GetSignature(anyAct, seed)
-	if err != nil {
-		panic(err)
-	}
-	anyAct = anyAct.Sign(s)
+	anyAct = util.Sign(anyAct, seed)
 	switch act := anyAct.(type) {
 	case action.Create:
 	case action.Action:

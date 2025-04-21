@@ -120,20 +120,10 @@ func (rs Service) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					av.StartTime = time.Now()
 					av.TargetCollection = tl
 				})
-				sig, err := util.GetSignature(ca, rs.key)
-				if err != nil {
-					panic(err)
-				}
-				signed := ca.Sign(sig)
-				rs.messageQueue <- jsonld.Marshal(signed)
+				rs.messageQueue <- jsonld.Marshal(util.Sign(ca, rs.key))
 
 				act = act.WithResult(result.Create("201", "RAN HOOK"))
-				sig, err = util.GetSignature(act, rs.key)
-				if err != nil {
-					panic(err)
-				}
-				signed = act.Sign(sig)
-				rs.messageQueue <- jsonld.Marshal(signed)
+				rs.messageQueue <- jsonld.Marshal(util.Sign(act, rs.key))
 				w.WriteHeader(202)
 			default:
 				panic("Not a runner action")
