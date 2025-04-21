@@ -9,6 +9,7 @@ import (
 	"fedilist/packages/model/action"
 	"fedilist/packages/model/list"
 	"fedilist/packages/model/person"
+	listService "fedilist/packages/service/list"
 	"fedilist/packages/util"
 	"fmt"
 	"io"
@@ -20,19 +21,21 @@ type PersonStore interface {
 	GetByPartialId(pid string) (person.Person, error)
 	Insert(person.Person) (person.Person, error)
 	AddList(person.Person, list.ItemList) (person.Person, error)
-    GetKey(person.Person) ([]byte, error)
-    StoreKey(person.Person, []byte) error
+	GetKey(person.Person) ([]byte, error)
+	StoreKey(person.Person, []byte) error
 }
 
 type PersonService struct {
 	store        PersonStore
+	listService  listService.ListService
 	messageQueue chan []byte
 }
 
-func Create(store PersonStore, q chan []byte) PersonService {
+func Create(store PersonStore, q chan []byte, ls listService.ListService) PersonService {
 	return PersonService{
 		store:        store,
 		messageQueue: q,
+		listService: ls,
 	}
 }
 
@@ -88,7 +91,7 @@ func (s PersonService) Create(fs ...func(*person.PersonValues)) (person.Person, 
 	if err != nil {
 		return p, "", err
 	}
-    err = s.store.StoreKey(p, privateKey.Seed())
+	err = s.store.StoreKey(p, privateKey.Seed())
 	if err != nil {
 		return p, "", err
 	}
@@ -116,10 +119,11 @@ func (ls PersonService) handleOutbox(p person.Person, w http.ResponseWriter, req
 		http.Error(w, "Can't post to another user's outbox", 400)
 		return
 	}
-    seed, err := ls.store.GetKey(p)
+	seed, err := ls.store.GetKey(p)
 	anyAct = util.Sign(anyAct, seed)
 	switch act := anyAct.(type) {
 	case action.Create:
+		ls.handleCreateList(act, w)
 	case action.Action:
 		jsonB := jsonld.Marshal(act)
 		ls.messageQueue <- jsonB

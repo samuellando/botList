@@ -92,6 +92,9 @@ func GetBaseTypeValues[T any](json map[string]any) map[string]T {
 	baseTypeValues := make(map[string]T)
 	for k, v := range json {
 		if a, ok := v.([]any); ok {
+			if len(a) == 0 {
+				continue
+			}
 			if o, ok := a[0].(map[string]any); ok {
 				if ov, ok := o["@value"]; ok {
 					if t, ok := ov.(T); ok {
@@ -132,6 +135,9 @@ func GetCompositeTypeValues(json map[string]any) map[string]map[string]any {
 	values := make(map[string]map[string]any)
 	for k, v := range json {
 		if a, ok := v.([]any); ok {
+			if len(a) == 0 {
+				continue
+			}
 			if o, ok := a[0].(map[string]any); ok {
 				if _, ok := o["@type"]; ok {
 					values[k] = o
@@ -146,6 +152,9 @@ func GetCompositeTypeArrayValues(json map[string]any) map[string][]map[string]an
 	values := make(map[string][]map[string]any)
 	for k, v := range json {
 		if a, ok := v.([]any); ok {
+			if len(a) == 0 {
+				continue
+			}
 			if o, ok := a[0].(map[string]any); ok {
 				if _, ok := o["@type"]; ok {
 					values[k] = make([]map[string]any, len(a))

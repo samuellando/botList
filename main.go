@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fedilist/packages/model/hook"
-	"fedilist/packages/model/list"
-	"fedilist/packages/model/person"
 	listService "fedilist/packages/service/list"
 	personService "fedilist/packages/service/person"
 	"fedilist/packages/service/router"
@@ -27,43 +24,8 @@ func main() {
 	go router.ProcessMessages(messages)
 
 	ls := listService.Create(listStore.CreateStore(serverUrl()+"/list/"), messages)
-	ps := personService.Create(personStore.CreateStore(serverUrl()+"/user/"), messages)
+	ps := personService.Create(personStore.CreateStore(serverUrl()+"/user/"), messages, ls)
 	rs := runnerService.Create(serverUrl()+"/runner", messages)
-
-	p, _, _ := ps.Create(func(pv *person.PersonValues) {
-        pv.Name = "Sam"
-	})
-
-	l, _ := ls.Create(func(ilv *list.ItemListValues) {
-		name := "Sam's list"
-		ilv.Name = name
-		h, err := hook.CreateActionHook(func(ahv *hook.ActionHookValues) {
-			ahv.Runner = rs.Runner()
-			ahv.RunnerAction = "CopyTo"
-			ahv.RunnerActionConfig = serverUrl() + "/list/1"
-			ahv.OnActionType = []string{"AppendAction"}
-		})
-		if err != nil {
-			panic(err)
-		}
-		ch, err := hook.CreateCronHook(func(ahv *hook.CronHookValues) {
-			ahv.Runner = rs.Runner()
-			ahv.RunnerAction = "Print"
-			ahv.RunnerActionConfig = "Hello World"
-			ahv.CronTab = "0,30 * * * *"
-		})
-		if err != nil {
-			panic(err)
-		}
-		ilv.Hooks = []hook.Hook{h, ch}
-	})
-
-	ls.Create(func(ilv *list.ItemListValues) {
-		name := "Target list"
-		ilv.Name = name
-	})
-
-	ps.AddList(p, l)
 
 	http.Handle("/list/{id}/{endpoint...}", ls)
 

@@ -45,8 +45,8 @@ func parseAction(json map[string]any) (action, error) {
 	}
 
 	var object list.ItemList
-	if json, ok := objs["object"]; ok {
-		object, err = list.Parse(json)
+	if oj, ok := objs["object"]; ok {
+		object, err = list.Parse(oj)
 		if err != nil {
 			return action{}, err
 		}

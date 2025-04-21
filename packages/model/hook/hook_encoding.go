@@ -76,7 +76,7 @@ func parseHook(json map[string]any) (hook, error) {
 			panic(err)
 		}
 	} else {
-		return hook{}, fmt.Errorf("Hooks must have a runner action config")
+		return hook{}, fmt.Errorf("Hooks must have a runner")
 	}
 	return hook{
 		runner: r,
