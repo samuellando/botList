@@ -50,6 +50,13 @@ func (s ListStore) Append(to, e list.ItemList) (list.ItemList, error) {
 	return l, nil
 }
 
+func (s ListStore) Remove(to, e list.ItemList) (list.ItemList, error) {
+	l := s.db[to.Id()]
+	l.Remove(e)
+	s.db[l.Id()] = l
+	return l, nil
+}
+
 func (s ListStore) StoreKey(l list.ItemList, key []byte) error {
     s.keys[l.Id()] = key
     return nil

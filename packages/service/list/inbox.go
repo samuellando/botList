@@ -52,6 +52,8 @@ func (ls ListService) handleInbox(list list.ItemList, w http.ResponseWriter, req
 		switch act := anyAct.(type) {
 		case action.Append:
 			ls.Append(w, act)
+		case action.Remove:
+			ls.Remove(w, act)
 		default:
 			http.Error(w, "Unsupported action", 400)
 			return

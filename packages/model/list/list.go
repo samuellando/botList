@@ -3,6 +3,7 @@ package list
 import (
 	"fedilist/packages/model/hook"
 	"fedilist/packages/model/tag"
+	"slices"
 )
 
 type ItemList struct {
@@ -87,3 +88,11 @@ func (l *ItemList) Append(e ItemList) {
 	n := len(l.itemListElement)
 	l.numberOfItems = n
 }	
+
+func (l *ItemList) Remove(e ItemList) {
+	l.itemListElement = slices.DeleteFunc(l.itemListElement, func(le ItemList) bool {
+		return le.Id() == e.Id()
+	})
+	n := len(l.itemListElement)
+	l.numberOfItems = n
+}
