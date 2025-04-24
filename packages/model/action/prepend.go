@@ -34,6 +34,10 @@ func (a Prepend) Result() *result.Result {
 	return a.targetListAction.action.result
 }
 
+func (a Prepend) TargetCollection() list.ItemList {
+	return a.targetListAction.targetCollection
+}
+
 func (a Prepend) TargetId() *string {
 	id := a.targetListAction.targetCollection.Id()
 	return &id

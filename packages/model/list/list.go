@@ -89,6 +89,12 @@ func (l *ItemList) Append(e ItemList) {
 	l.numberOfItems = n
 }	
 
+func (l *ItemList) Prepend(e ItemList) {
+	l.itemListElement = slices.Insert(l.itemListElement, 0, e)
+	n := len(l.itemListElement)
+	l.numberOfItems = n
+}	
+
 func (l *ItemList) Remove(e ItemList) {
 	l.itemListElement = slices.DeleteFunc(l.itemListElement, func(le ItemList) bool {
 		return le.Id() == e.Id()
