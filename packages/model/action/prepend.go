@@ -1,10 +1,8 @@
 package action
 
 import (
-	"fedilist/packages/jsonld"
 	"fedilist/packages/model/list"
 	"fedilist/packages/model/result"
-	"fmt"
 	"time"
 )
 
@@ -51,16 +49,4 @@ func (a Prepend) WithResult(r result.Result) Action {
 	a.targetListAction.action.result = &r
 	a.targetListAction.action.endTime = &t
 	return a
-}
-
-
-func parsePrepend(json map[string]any) (Prepend, error) {
-	if jsonld.GetType(json) != "http://schema.org/PrependAction" {
-		return Prepend{}, fmt.Errorf("Wrong @type")
-	}
-	tla, err := parseTargetListAction(json)
-	if err != nil {
-		return Prepend{}, err
-	}
-	return Prepend{targetListAction: tla}, nil
 }
