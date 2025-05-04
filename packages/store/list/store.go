@@ -65,6 +65,21 @@ func (s ListStore) Remove(to, e list.ItemList) (list.ItemList, error) {
 	return l, nil
 }
 
+func (s ListStore) Update(to, e list.ItemList) (list.ItemList, error) {
+	withId := list.Create(func(ilv *list.ItemListValues) {
+		ilv.Id = to.Id()
+		ilv.Name = e.Name()
+		ilv.Description = e.Description()
+		ilv.Url = e.Url()
+		ilv.Tags = e.Tags()
+		ilv.ItemListElement = e.ItemListElement()
+		ilv.Hooks = e.Hooks()
+		ilv.Key = e.Key()
+	})
+	s.db[to.Id()] = withId
+	return withId, nil
+}
+
 func (s ListStore) StoreKey(l list.ItemList, key []byte) error {
     s.keys[l.Id()] = key
     return nil

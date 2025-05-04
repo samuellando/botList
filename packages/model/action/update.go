@@ -39,6 +39,10 @@ func (a Update) TargetId() *string {
 	return &id
 }
 
+func (a Update) TargetCollection() list.ItemList {
+	return a.targetListAction.targetCollection
+}
+
 func (a Update) Sign(s string) Action {
 	a.targetListAction.action.signature = s
 	return a
