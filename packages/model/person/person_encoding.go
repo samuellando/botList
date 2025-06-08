@@ -30,6 +30,31 @@ func (p Person) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (p *Person) UnmarshalJSON(data []byte) error {
+	type External struct {
+		Type        string          `json:"@type"`
+		Id          string          `json:"@id,omitempty"`
+		Name        string          `json:"http://schema.org/name,omitempty"`
+		Description string          `json:"http://schema.org/description,omitempty"`
+		Key         string          `json:"http://fedilist.com/key,omitempty"`
+		List        []list.ItemList `json:"http://fedilist.com/list,omitempty"`
+		Inbox       string          `json:"http://fedilist.com/inbox,omitempty"`
+		Outbox      string          `json:"http://fedilist.com/outbox,omitempty"`
+	}
+	var ext External
+	if err := json.Unmarshal(data, &ext); err != nil {
+		return err
+	}
+	if ext.Type != "http://schema.org/Person" {
+		return fmt.Errorf("invalid type: %s", ext.Type)
+	}
+	p.id = ext.Id
+	p.name = ext.Name
+	p.description = ext.Description
+	p.key = ext.Key
+	return nil
+}
+
 func LoadPerson(json map[string]any) (Person, error) {
 	if jsonld.GetType(json) != "http://schema.org/Person" {
 		return Person{}, fmt.Errorf("Cannot load non person")

@@ -35,7 +35,7 @@ func Create(store PersonStore, q chan []byte, ls listService.ListService) Person
 	return PersonService{
 		store:        store,
 		messageQueue: q,
-		listService: ls,
+		listService:  ls,
 	}
 }
 

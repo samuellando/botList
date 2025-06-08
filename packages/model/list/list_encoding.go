@@ -35,6 +35,38 @@ func (l ItemList) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (l *ItemList) UnmarshalJSON(data []byte) error {
+	type External struct {
+		Type            string      `json:"@type"`
+		Id              string      `json:"@id,omitempty"`
+		Name            string      `json:"http://schema.org/name,omitempty"`
+		Description     string      `json:"http://schema.org/description,omitempty"`
+		Url             string      `json:"http://schema.org/url,omitempty"`
+		Tags            []tag.Tag   `json:"http://schema.org/tags,omitempty"`
+		Hooks           []hook.Hook `json:"http://fedilist.com/hooks,omitempty"`
+		NumberOfItems   int         `json:"http://schema.org/numberOfItems"`
+		ItemListElement []ItemList  `json:"http://schema.org/itemListElement,omitempty"`
+		Key             string      `json:"http://fedilist.com/key,omitempty"`
+	}
+	var ext External
+	if err := json.Unmarshal(data, &ext); err != nil {
+		return err
+	}
+	if ext.Type != "http://schema.org/ItemList" {
+		return fmt.Errorf("Type must be ItemList")
+	}
+	l.id = ext.Id
+	l.name = ext.Name
+	l.description = ext.Description
+	l.url = ext.Url
+	l.tags = ext.Tags
+	l.hooks = ext.Hooks
+	l.numberOfItems = ext.NumberOfItems
+	l.itemListElement = ext.ItemListElement
+	l.key = ext.Key
+	return nil
+}
+
 func Parse(json map[string]any) (ItemList, error) {
 	if jsonld.GetType(json) != "http://schema.org/ItemList" {
 		return ItemList{}, fmt.Errorf("Type must be ItemList")
