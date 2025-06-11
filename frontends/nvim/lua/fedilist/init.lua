@@ -5,9 +5,11 @@ function M.setup(opts)
         print("Hello from my plugin!")
     end, {})
     vim.api.nvim_create_user_command("GetList", function(opts)
-        M.display(opts.args)
+        M.display_by_id(opts.args)
     end, { nargs = 1 })
 end
+
+local ns_id = vim.api.nvim_create_namespace('fedilist')
 
 -- Fetch JSON over HTTP using curl
 function fetch_url(url)
@@ -18,12 +20,12 @@ function fetch_url(url)
     return result
 end
 
-function M.get_list(id)
-    return fetch_url("http://localhost:9090/list/" .. id)
+function M.display_by_id(id)
+    M.display("http://localhost:9090/list/" .. id)
 end
 
-function M.display(id)
-    local ok, data = pcall(vim.fn.json_decode, M.get_list(id))
+function M.display(url)
+    local ok, data = pcall(vim.fn.json_decode, fetch_url(url))
     if not ok or not data then
         vim.api.nvim_err_writeln("Invalid JSON")
         return
@@ -35,8 +37,10 @@ function M.display(id)
 
     -- Set buffer as unlisted and scratch
     vim.bo[buf].buftype = "nofile"
-    vim.bo[buf].bufhidden = "wipe"
     vim.bo[buf].swapfile = false
+
+    vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", "<cmd>lua require('fedilist').on_enter(" .. buf .. ")<CR>",
+        { noremap = true, silent = true })
 
     -- Prepare lines
     local lines = {
@@ -51,6 +55,26 @@ function M.display(id)
 
     -- Write lines to buffer
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    local ids = {}
+    if data.itemListElement then
+        for i, item in ipairs(data.itemListElement) do
+            local eid = vim.api.nvim_buf_set_extmark(buf, ns_id, i + 2, 0, {
+                right_gravity = false
+            })
+            ids[eid] = item.id
+        end
+    end
+    vim.b[buf] = vim.b[buf] or {}
+    vim.b[buf].ids = ids
+end
+
+function M.on_enter(buf)
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+    local m = vim.api.nvim_buf_get_extmarks(buf, ns_id, { line, 0 }, { line, -1 }, { details = true })[1]
+    if m then
+        url = vim.b[buf].ids[m[1]]
+        M.display(url)
+    end
 end
 
 return M
