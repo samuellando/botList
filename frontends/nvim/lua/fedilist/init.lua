@@ -128,6 +128,40 @@ function M.on_save(buf)
     M.display(vim.b[buf].id)
 end
 
+function M.update(buf)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local json_str = table.concat(lines, "\n")
+    local updated_list = vim.fn.json_decode(json_str)
+    local payload = {
+        ["@context"] = {
+            "https://schema.org",
+            {
+                owner   = "http://fedilist.com/owner",
+                editor  = "http://fedilist.com/editor",
+                viewer  = "http://fedilist.com/viewer",
+                atIndex = "http://fedilist.com/toIndex",
+                Result  = "http://fedilist.com/Result"
+            }
+        },
+        type = "UpdateAction",
+        agent = {
+            type = "Person",
+            id   = "http://localhost:9090/user/samuel"
+        },
+        object = updated_list,
+        targetCollection = {
+            type = "ItemList",
+            id   = updated_list.id
+        },
+        startTime = iso_datetime()
+    }
+    local body = vim.fn.json_encode(payload)
+    local cmd = 'curl -s -X POST -H "Content-Type: application/json" --data ' ..
+        vim.fn.shellescape(body) .. ' http://localhost:9090/user/samuel/outbox'
+    os.execute(cmd)
+    vim.api.nvim_buf_set_option(buf, "modified", false)
+end
+
 function M.remove(buf, id)
     local payload = {
         ["@context"] = {
@@ -213,11 +247,9 @@ function M.on_g_dot(parent_buf)
     end
 
     local name = vim.api.nvim_buf_get_name(parent_buf) .. "/raw.json"
-    local newbuf = M.open_buffer(name, {}, function() end)
+    local newbuf = M.open_buffer(name, {}, M.update)
     vim.api.nvim_buf_set_option(newbuf, "filetype", "json")
 
-    data.itemListElement = nil
-    data.numberOfItems = nil
     data["@context"] = nil
 
     local json = vim.fn.json_encode(data)
@@ -229,6 +261,7 @@ function M.on_g_dot(parent_buf)
     end
 
     vim.api.nvim_buf_set_lines(newbuf, 0, -1, false, lines)
+    vim.api.nvim_buf_set_option(newbuf, "modified", false)
 end
 
 return M
