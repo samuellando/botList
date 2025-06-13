@@ -1,15 +1,10 @@
 local M = {}
 
 function M.setup(opts)
-    vim.api.nvim_create_user_command("MyHello", function()
-        print("Hello from my plugin!")
-    end, {})
     vim.api.nvim_create_user_command("GetList", function(opts)
         M.display_by_id(opts.args)
     end, { nargs = 1 })
 end
-
-local ns_id = vim.api.nvim_create_namespace('fedilist')
 
 function iso_datetime()
     return os.date("!%Y-%m-%dT%H:%M:%SZ")
@@ -37,45 +32,53 @@ function random_id(len)
     return table.concat(res)
 end
 
-M.url_to_bufnr = M.url_to_bufnr or {}
+M.buffers = M.buffers or {}
+function M.open_buffer(name, keymaps, on_save)
+    if not M.buffers[name] then
+        vim.cmd("enew")
+        local buf = vim.api.nvim_get_current_buf()
+        vim.api.nvim_buf_set_name(buf, name)
+        vim.bo[buf].buftype = "acwrite"
+        vim.bo[buf].swapfile = false
+        -- Set the keymaps for the buffer
+        for lhs, rhs in pairs(keymaps) do
+            vim.keymap.set('n', lhs, function() rhs(buf) end, { buffer = buf })
+        end
+        -- Define our custom on save function
+        vim.api.nvim_create_autocmd("BufWriteCmd", {
+            buffer = buf,
+            callback = function()
+                on_save(buf)
+            end,
+        })
+        M.buffers[name] = buf
+        return buf
+    else
+        vim.api.nvim_set_current_buf(M.buffers[name])
+        return M.buffers[name]
+    end
+end
+
 function M.display(url)
     local ok, data = pcall(vim.fn.json_decode, fetch_url(url))
     if not ok or not data then
         vim.api.nvim_err_writeln("Invalid JSON")
         return
     end
-
-    -- Open a new scratch buffer
-    -- Set buffer as unlisted and scratch
-    if not M.url_to_bufnr[url] then
-        vim.cmd("enew")
-        local buf = vim.api.nvim_get_current_buf()
-        vim.bo[buf].buftype = "acwrite"
-        vim.bo[buf].swapfile = false
-        vim.api.nvim_buf_set_name(buf, "fedilist://" .. url)
-        M.url_to_bufnr[url] = buf
-        vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", "<cmd>lua require('fedilist').on_enter(" .. buf .. ")<CR>",
-            { noremap = true, silent = true })
-        -- Hide the ids at the start of the line
-        vim.api.nvim_buf_set_option(buf, "conceallevel", 2)
-        vim.api.nvim_buf_set_option(buf, "concealcursor", "n")
-        -- Define a syntax region that will be concealed (local to buffer)
-        vim.api.nvim_buf_call(buf, function()
-            vim.cmd [[syntax match FediListConcealed /^\\\w\{3}\s/ conceal]]
-            vim.cmd [[highlight default link FediListConcealed Conceal]]
-        end)
-        -- Define our custom on save function
-        vim.api.nvim_create_autocmd("BufWriteCmd", {
-            buffer = buf,
-            callback = function()
-                M.on_save(buf)
-            end,
-        })
-    else
-        vim.api.nvim_set_current_buf(M.url_to_bufnr[url])
-    end
-    local buf = vim.api.nvim_get_current_buf()
-
+    -- create/open the buffer
+    local name = "fedilist://" .. url
+    local buf = M.open_buffer(name, {
+        ["<CR>"] = M.on_enter,
+        ["g."] = M.on_g_dot,
+    }, M.on_save)
+    -- Hide the ids at the start of the line
+    vim.api.nvim_buf_set_option(buf, "conceallevel", 2)
+    vim.api.nvim_buf_set_option(buf, "concealcursor", "n")
+    -- Define a syntax region that will be concealed (local to buffer)
+    vim.api.nvim_buf_call(buf, function()
+        vim.cmd [[syntax match FediListConcealed /^\\\w\{3}\s/ conceal]]
+        vim.cmd [[highlight default link FediListConcealed Conceal]]
+    end)
     -- Prepare lines
     local lines = {
         data.name,
@@ -198,6 +201,34 @@ function M.on_enter(buf)
     if rid and vim.b[buf].ids[rid] then
         M.display(vim.b[buf].ids[rid])
     end
+end
+
+function M.on_g_dot(parent_buf)
+    local url = vim.b[parent_buf].id
+
+    local ok, data = pcall(vim.fn.json_decode, fetch_url(url))
+    if not ok or not data then
+        vim.api.nvim_err_writeln("Invalid JSON")
+        return
+    end
+
+    local name = vim.api.nvim_buf_get_name(parent_buf) .. "/raw.json"
+    local newbuf = M.open_buffer(name, {}, function() end)
+    vim.api.nvim_buf_set_option(newbuf, "filetype", "json")
+
+    data.itemListElement = nil
+    data.numberOfItems = nil
+    data["@context"] = nil
+
+    local json = vim.fn.json_encode(data)
+    local pretty = vim.fn.system({ "jq", "." }, json)
+
+    local lines = {}
+    for line in pretty:gmatch("([^\n]+)") do
+        table.insert(lines, line)
+    end
+
+    vim.api.nvim_buf_set_lines(newbuf, 0, -1, false, lines)
 end
 
 return M
